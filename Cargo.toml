@@ -18,7 +18,7 @@ license = "EUPL-1.2"
 categories = ["development-tools::debugging", "science"]
 edition = "2024"
 rust-version = "1.95"
-repository = "https://github.com/loveluothebest/wavAnaly"
+repository = "https://github.com/Anisluo/wavAnaly"
 
 [workspace.dependencies]
 

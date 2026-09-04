@@ -259,7 +259,7 @@ mod main_impl {
 
         eprintln!();
         eprintln!("wavAnaly 因 panic 崩溃了 😞");
-        eprintln!("请到 https://github.com/loveluothebest/wavAnaly/issues 反馈此问题");
+        eprintln!("请到 https://github.com/Anisluo/wavAnaly/issues 反馈此问题");
         eprintln!();
         eprintln!("Some notes on reports:");
         eprintln!(
