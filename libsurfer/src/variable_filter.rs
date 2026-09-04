@@ -254,7 +254,7 @@ impl SystemState {
                     };
                     if ui
                         .button(icons::ADD_FILL)
-                        .on_hover_text("Add all variables from active Scope")
+                        .on_hover_text(t!("Add all variables from active Scope"))
                         .clicked()
                     {
                         self.add_filtered_variables(msgs, full_path);
@@ -264,7 +264,7 @@ impl SystemState {
                             !self.user.variable_filter.name_filter_str.is_empty(),
                             Button::new(icons::CLOSE_FILL),
                         )
-                        .on_hover_text("Clear filter")
+                        .on_hover_text(t!("Clear filter"))
                         .clicked()
                     {
                         self.user.variable_filter.name_filter_str.clear();
@@ -284,7 +284,7 @@ impl SystemState {
 
                     let mut response = ui.add(
                         TextEdit::singleline(&mut self.user.variable_filter.name_filter_str)
-                            .hint_text("Filter"),
+                            .hint_text(t!("Filter")),
                     );
 
                     // Restore original style immediately after rendering
@@ -293,7 +293,7 @@ impl SystemState {
                     // Add hover text with error message if regex is invalid
                     if let Some(err) = error_msg {
                         response = response.on_hover_ui(|ui| {
-                            ui.label("Invalid regex:");
+                            ui.label(t!("Invalid regex:"));
                             // Use monospace font for error details as it contains position information
                             ui.label(RichText::new(err).family(epaint::FontFamily::Monospace));
                         });
@@ -402,7 +402,7 @@ impl SystemState {
             self.user.variable_filter.name_filter_case_insensitive;
 
         if ui
-            .checkbox(&mut name_filter_case_insensitive, "Case insensitive")
+            .checkbox(&mut name_filter_case_insensitive, t!("Case insensitive"))
             .clicked()
         {
             msgs.push(Message::SetVariableNameFilterCaseInsensitive(
@@ -413,10 +413,16 @@ impl SystemState {
         ui.separator();
 
         for filter_type in enum_iterator::all::<VariableNameFilterType>() {
+            let label = match filter_type {
+                VariableNameFilterType::Fuzzy => t!("Fuzzy"),
+                VariableNameFilterType::Regex => t!("Regular expression"),
+                VariableNameFilterType::Start => t!("Variable starts with"),
+                VariableNameFilterType::Contain => t!("Variable contains"),
+            };
             if ui
                 .radio(
                     self.user.variable_filter.name_filter_type == filter_type,
-                    filter_type.to_string(),
+                    label,
                 )
                 .clicked()
             {
@@ -433,7 +439,7 @@ impl SystemState {
         let mut group_by_direction = self.user.variable_filter.group_by_direction;
 
         if ui
-            .checkbox(&mut group_by_direction, "Group by direction")
+            .checkbox(&mut group_by_direction, t!("Group by direction"))
             .clicked()
         {
             msgs.push(Message::SetVariableGroupByDirection(
@@ -453,7 +459,7 @@ impl SystemState {
                     Button::new(input.get_icon().unwrap())
                         .selected(self.user.variable_filter.include_inputs),
                 )
-                .on_hover_text("Show inputs")
+                .on_hover_text(t!("Show inputs"))
                 .clicked()
             {
                 msgs.push(Message::SetVariableIOFilter(
@@ -467,7 +473,7 @@ impl SystemState {
                     Button::new(output.get_icon().unwrap())
                         .selected(self.user.variable_filter.include_outputs),
                 )
-                .on_hover_text("Show outputs")
+                .on_hover_text(t!("Show outputs"))
                 .clicked()
             {
                 msgs.push(Message::SetVariableIOFilter(
@@ -481,7 +487,7 @@ impl SystemState {
                     Button::new(inout.get_icon().unwrap())
                         .selected(self.user.variable_filter.include_inouts),
                 )
-                .on_hover_text("Show inouts")
+                .on_hover_text(t!("Show inouts"))
                 .clicked()
             {
                 msgs.push(Message::SetVariableIOFilter(
@@ -495,7 +501,7 @@ impl SystemState {
                     Button::new(icons::GLOBAL_LINE)
                         .selected(self.user.variable_filter.include_others),
                 )
-                .on_hover_text("Show others")
+                .on_hover_text(t!("Show others"))
                 .clicked()
             {
                 msgs.push(Message::SetVariableIOFilter(

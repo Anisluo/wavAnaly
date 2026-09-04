@@ -357,7 +357,7 @@ impl SystemState {
                                 |ui| {
                                     ui.horizontal(|ui| {
                                         ui.add_space(text_margin.x);
-                                        ui.label(RichText::new("Time").italics());
+                                        ui.label(RichText::new(t!("Time")).italics());
                                     });
                                 },
                             );
@@ -492,7 +492,7 @@ impl SystemState {
                 .show(ui, |ui| {
                     ui.add_space(max_height * 0.1);
                     ui.vertical_centered(|ui| {
-                        ui.label(RichText::new("🏄 Surfer").monospace().size(24.));
+                        ui.label(RichText::new("🏄 wavAnaly").monospace().size(24.));
                         ui.add_space(20.);
                         let layout = Layout::top_down(Align::LEFT);
                         ui.allocate_ui_with_layout(
@@ -532,7 +532,7 @@ impl SystemState {
 
     fn draw_load_url(&self, ui: &mut Ui, msgs: &mut Vec<Message>) {
         let mut open = true;
-        egui::Window::new("Load URL")
+        egui::Window::new(t!("Load URL"))
             .open(&mut open)
             .collapsible(false)
             .resizable(true)
@@ -541,7 +541,7 @@ impl SystemState {
                     let url = &mut *self.url.borrow_mut();
                     let response = ui.text_edit_singleline(url);
                     ui.horizontal(|ui| {
-                        if ui.button("Load URL").clicked()
+                        if ui.button(t!("Load URL")).clicked()
                             || (response.lost_focus()
                                 && ui.input(|i| i.key_pressed(egui::Key::Enter)))
                         {
@@ -550,7 +550,7 @@ impl SystemState {
                             }
                             msgs.push(Message::SetUrlEntryVisible(false, None));
                         }
-                        if ui.button("Cancel").clicked() {
+                        if ui.button(t!("Cancel")).clicked() {
                             msgs.push(Message::SetUrlEntryVisible(false, None));
                         }
                     });
@@ -1024,10 +1024,10 @@ impl SystemState {
                             variable_tooltip_text(meta.as_ref(), &field.root)
                         }
                     } else {
-                        "From translator".to_string()
+                        t!("From translator").to_string()
                     }
                 } else {
-                    "No waveform loaded".to_string()
+                    t!("No waveform loaded").to_string()
                 };
                 ui.set_max_width(ui.spacing().tooltip_width);
                 ui.add(egui::Label::new(tooltip));

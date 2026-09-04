@@ -1,4 +1,84 @@
 //! 中文词典: zh_misc
 
 pub const ENTRIES: &[(&str, &str)] = &[
+    // displayed_item.rs
+    ("Marker", "标记"),
+    ("Time", "时间"),
+    ("Not available: ", "不可用："),
+    // marker.rs
+    ("Markers", "标记"),
+    ("Primary", "主光标"),
+    ("Close", "关闭"),
+    // comment.rs
+    ("Comment...", "评论…"),
+    // arrow.rs / rectangle.rs
+    ("Pointing at", "指向"),
+    ("from:", "起点："),
+    ("to:", "终点："),
+    // tooltips.rs
+    ("unknown", "未知"),
+    ("Undefined", "未定义"),
+    ("Transaction unavailable", "事务不可用"),
+    ("Transaction details unavailable", "事务详情不可用"),
+    ("Attribute", "属性"),
+    ("Value", "值"),
+    ("Type", "类型"),
+    ("Num bits", "位宽"),
+    ("Direction", "方向"),
+    // transactions.rs
+    ("Focused Transaction Details", "聚焦事务详情"),
+    ("Properties", "属性"),
+    ("Transaction ID", "事务 ID"),
+    ("Start Time", "开始时间"),
+    ("End Time", "结束时间"),
+    ("Attributes", "属性列表"),
+    ("Name", "名称"),
+    ("Incoming Relations", "输入关系"),
+    ("Source Tx", "源事务"),
+    ("Sink Tx", "目的事务"),
+    ("Outgoing Relations", "输出关系"),
+    ("Stream not found", "未找到流"),
+    // wave_source.rs (progress texts)
+    ("Connecting", "正在连接"),
+    ("Downloading", "正在下载"),
+    ("Loading variable names from", "正在从以下位置加载变量名称"),
+    (
+        "Loading variable change data from",
+        "正在从以下位置加载变量变化数据",
+    ),
+    ("Loading", "正在加载"),
+    ("variables", "个变量"),
+    // frame_buffer.rs
+    ("Frame Buffer", "帧缓冲区"),
+    ("Place the cursor.", "请放置光标。"),
+    ("Square pixels", "正方形像素"),
+    ("Color mode", "颜色模式"),
+    ("Grayscale bits", "灰度位数"),
+    ("R bits", "R 位数"),
+    ("G bits", "G 位数"),
+    ("B bits", "B 位数"),
+    ("Y bits", "Y 位数"),
+    ("Cb bits", "Cb 位数"),
+    ("Cr bits", "Cr 位数"),
+    ("No bits available", "没有可用的位"),
+    (
+        "Set at least one RGB channel bit count above zero.",
+        "请将至少一个 RGB 通道的位数设为大于零。",
+    ),
+    (
+        "Set at least one YCbCr channel bit count above zero.",
+        "请将至少一个 YCbCr 通道的位数设为大于零。",
+    ),
+    (
+        "No pixels to draw with current bit settings.",
+        "当前位设置下没有可绘制的像素。",
+    ),
+    ("Var", "变量"),
+    ("Copy image", "复制图像"),
+    ("Pixels in x-direction", "水平方向像素数"),
+    ("First array index", "首个数组索引"),
+    ("Last array index", "末个数组索引"),
+    ("Level", "层级"),
+    ("first index", "首索引"),
+    ("last index", "末索引"),
 ];

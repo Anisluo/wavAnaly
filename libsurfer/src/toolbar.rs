@@ -334,7 +334,7 @@ impl SystemState {
             ui,
             msgs,
             icons::FOLDER_OPEN_FILL,
-            "Open file...",
+            t!("Open file..."),
             Message::OpenFileDialog(OpenMode::Open),
             true,
         );
@@ -342,7 +342,7 @@ impl SystemState {
             ui,
             msgs,
             icons::DOWNLOAD_CLOUD_FILL,
-            "Open URL...",
+            t!("Open URL..."),
             Message::SetUrlEntryVisible(
                 true,
                 Some(Box::new(|url: String| {
@@ -355,7 +355,7 @@ impl SystemState {
             ui,
             msgs,
             icons::REFRESH_LINE,
-            "Reload",
+            t!("Reload"),
             Message::ReloadWaveform(self.user.config.behavior.keep_during_reload),
             wave_loaded,
         );
@@ -363,7 +363,7 @@ impl SystemState {
             ui,
             msgs,
             icons::RUN_LINE,
-            "Run command file...",
+            t!("Run command file..."),
             Message::OpenCommandFileDialog,
             true,
         );
@@ -372,7 +372,7 @@ impl SystemState {
                 ui,
                 msgs,
                 icons::FILE_LIST_FILL,
-                "Select Surver file",
+                t!("Select Surver file"),
                 Message::SetSurverFileWindowVisible(true),
                 true,
             );
@@ -384,7 +384,7 @@ impl SystemState {
             ui,
             msgs,
             icons::FILE_COPY_FILL,
-            "Copy variable value",
+            t!("Copy variable value"),
             Message::VariableValueToClipbord(MessageTarget::CurrentSelection),
             enabled,
         );
@@ -405,7 +405,7 @@ impl SystemState {
             ui,
             msgs,
             icons::ZOOM_IN_FILL,
-            "Zoom in",
+            t!("Zoom in"),
             Message::CanvasZoom {
                 mouse_ptr: None,
                 delta: 0.5,
@@ -417,7 +417,7 @@ impl SystemState {
             ui,
             msgs,
             icons::ZOOM_OUT_FILL,
-            "Zoom out",
+            t!("Zoom out"),
             Message::CanvasZoom {
                 mouse_ptr: None,
                 delta: 2.0,
@@ -429,7 +429,7 @@ impl SystemState {
             ui,
             msgs,
             icons::TARGET_FILL,
-            "Zoom in on cursor",
+            t!("Zoom in on cursor"),
             Message::ZoomToCursor {
                 delta: 0.5,
                 viewport_idx,
@@ -440,7 +440,7 @@ impl SystemState {
             ui,
             msgs,
             icons::ASPECT_RATIO_FILL,
-            "Zoom to fit",
+            t!("Zoom to fit"),
             Message::ZoomToFit { viewport_idx },
             wave_loaded,
         );
@@ -461,7 +461,7 @@ impl SystemState {
             ui,
             msgs,
             icons::REWIND_START_FILL,
-            "Go to start",
+            t!("Go to start"),
             Message::GoToStart { viewport_idx },
             wave_loaded,
         );
@@ -469,7 +469,7 @@ impl SystemState {
             ui,
             msgs,
             icons::REWIND_FILL,
-            "Go one page left",
+            t!("Go one page left"),
             Message::CanvasScroll {
                 delta: Vec2 {
                     y: PER_SCROLL_EVENT * SCROLL_EVENTS_PER_PAGE,
@@ -483,7 +483,7 @@ impl SystemState {
             ui,
             msgs,
             icons::PLAY_REVERSE_FILL,
-            "Go left",
+            t!("Go left"),
             Message::CanvasScroll {
                 delta: Vec2 {
                     y: PER_SCROLL_EVENT,
@@ -497,7 +497,7 @@ impl SystemState {
             ui,
             msgs,
             icons::PLAY_FILL,
-            "Go right",
+            t!("Go right"),
             Message::CanvasScroll {
                 delta: Vec2 {
                     y: -PER_SCROLL_EVENT,
@@ -511,7 +511,7 @@ impl SystemState {
             ui,
             msgs,
             icons::SPEED_FILL,
-            "Go one page right",
+            t!("Go one page right"),
             Message::CanvasScroll {
                 delta: Vec2 {
                     y: -PER_SCROLL_EVENT * SCROLL_EVENTS_PER_PAGE,
@@ -525,7 +525,7 @@ impl SystemState {
             ui,
             msgs,
             icons::FORWARD_END_FILL,
-            "Go to end",
+            t!("Go to end"),
             Message::GoToEnd { viewport_idx },
             wave_loaded,
         );
@@ -536,7 +536,7 @@ impl SystemState {
             ui,
             msgs,
             icons::CONTRACT_LEFT_FILL,
-            "Set cursor on previous transition of focused variable",
+            t!("Set cursor on previous transition of focused variable"),
             Message::MoveCursorToTransition {
                 next: false,
                 variable: None,
@@ -548,7 +548,7 @@ impl SystemState {
             ui,
             msgs,
             icons::CONTRACT_RIGHT_FILL,
-            "Set cursor on next transition of focused variable",
+            t!("Set cursor on next transition of focused variable"),
             Message::MoveCursorToTransition {
                 next: true,
                 variable: None,
@@ -568,7 +568,7 @@ impl SystemState {
             ui,
             msgs,
             icons::SPACE,
-            "Add divider",
+            t!("Add divider"),
             Message::AddDivider(None, None),
             wave_loaded,
         );
@@ -576,7 +576,7 @@ impl SystemState {
             ui,
             msgs,
             icons::TIME_FILL,
-            "Add timeline",
+            t!("Add timeline"),
             Message::AddTimeLine(None),
             wave_loaded,
         );
@@ -598,7 +598,7 @@ impl SystemState {
             ui,
             msgs,
             icons::ADD_BOX_FILL,
-            "Add viewport",
+            t!("Add viewport"),
             Message::AddViewport,
             wave_loaded,
         );
@@ -606,7 +606,7 @@ impl SystemState {
             ui,
             msgs,
             icons::CHECKBOX_INDETERMINATE_FILL,
-            "Remove viewport",
+            t!("Remove viewport"),
             Message::RemoveViewport,
             wave_loaded && multiple_viewports,
         );
@@ -617,14 +617,14 @@ impl SystemState {
         let redo_available = !self.redo_stack.is_empty();
 
         let undo_tooltip = if let Some(undo_op) = self.undo_stack.last() {
-            format!("Undo: {}", undo_op.message)
+            format!("{}: {}", t!("Undo"), undo_op.message)
         } else {
-            "Undo".into()
+            t!("Undo").to_string()
         };
         let redo_tooltip = if let Some(redo_op) = self.redo_stack.last() {
-            format!("Redo: {}", redo_op.message)
+            format!("{}: {}", t!("Redo"), redo_op.message)
         } else {
-            "Redo".into()
+            t!("Redo").to_string()
         };
         add_toolbar_button(
             ui,
@@ -652,13 +652,13 @@ impl SystemState {
             return;
         };
 
-        ui.label("Simulation");
+        ui.label(t!("Simulation"));
         match status {
             SimulationStatus::Paused => add_toolbar_button(
                 ui,
                 msgs,
                 icons::PLAY_CIRCLE_FILL,
-                "Run simulation",
+                t!("Run simulation"),
                 Message::UnpauseSimulation,
                 true,
             ),
@@ -666,12 +666,12 @@ impl SystemState {
                 ui,
                 msgs,
                 icons::PAUSE_CIRCLE_FILL,
-                "Pause simulation",
+                t!("Pause simulation"),
                 Message::PauseSimulation,
                 true,
             ),
             SimulationStatus::Finished => {
-                ui.label("Finished");
+                ui.label(t!("Finished"));
             }
         }
     }
@@ -691,7 +691,7 @@ impl SystemState {
         annotation_kind: AnnotationKind,
     ) -> (&'a str, Option<AnnotationKind>, &'a str) {
         if self.annotation_kind == Some(annotation_kind) {
-            (icon_selected, None, "Cancel Action")
+            (icon_selected, None, t!("Cancel Action"))
         } else {
             (icon_unselected, Some(annotation_kind), hover_text)
         }
@@ -700,7 +700,7 @@ impl SystemState {
     fn draw_annotation_group(&mut self, ui: &mut Ui, msgs: &mut Vec<Message>, wave_loaded: bool) {
         // Implementation for drawing the annotation group
         let (rect_icon, rect_kind, rect_text) = self.annotation_helper(
-            "Add Rectangle",
+            t!("Add Rectangle"),
             icons::EDIT_BOX_LINE,
             icons::EDIT_BOX_FILL,
             AnnotationKind::Rectangle,
@@ -714,7 +714,7 @@ impl SystemState {
             wave_loaded,
         );
         let (arrow_icon, arrow_kind, arrow_text) = self.annotation_helper(
-            "Add Arrow",
+            t!("Add Arrow"),
             icons::ARROW_RIGHT_UP_BOX_LINE,
             icons::ARROW_RIGHT_UP_BOX_FILL,
             AnnotationKind::ArrowSingleHead,
@@ -729,7 +729,7 @@ impl SystemState {
         );
 
         let (double_arrow_icon, double_arrow_kind, double_arrow_text) = self.annotation_helper(
-            "Add Double Headed Arrow",
+            t!("Add Double Headed Arrow"),
             icons::ARROW_LEFT_RIGHT_FILL,
             icons::CLOSE_LARGE_LINE,
             AnnotationKind::ArrowDoubleHead,
@@ -747,7 +747,7 @@ impl SystemState {
             ui,
             msgs,
             icons::LIST_CHECK,
-            "Annotations list",
+            t!("Annotations list"),
             Message::ToggleAnnotationlistVisibility(),
             wave_loaded,
         );

@@ -1,5 +1,7 @@
 #![deny(unused_crate_dependencies)]
 
+#[macro_use]
+pub mod i18n;
 pub mod analog_renderer;
 pub mod analog_signal_cache;
 pub mod annotation;
@@ -33,8 +35,6 @@ pub mod fzcmd;
 pub mod graphics;
 pub mod help;
 pub mod hierarchy;
-#[macro_use]
-pub mod i18n;
 pub mod item_drawing_info;
 pub mod keyboard_shortcuts;
 pub mod keys;
@@ -193,7 +193,63 @@ fn setup_custom_font(ctx: &egui::Context) {
         .unwrap()
         .push("remix_icons".to_owned());
 
+    // 中文界面需要 CJK 字形; egui 自带字体没有。运行时从系统字体目录找一个作为回退。
+    if let Some((bytes, index, name)) = load_system_cjk_font() {
+        info!("Using system CJK font {name}");
+        let data = FontData {
+            font: std::borrow::Cow::Owned(bytes),
+            index,
+            tweak: Default::default(),
+        };
+        fonts.font_data.insert("cjk".to_owned(), data.into());
+        for family in [FontFamily::Proportional, FontFamily::Monospace] {
+            fonts
+                .families
+                .get_mut(&family)
+                .unwrap()
+                .push("cjk".to_owned());
+        }
+    } else {
+        warn!("No CJK font found; Chinese UI text will not render. Set language = \"en\" in the config.");
+    }
+
     ctx.set_fonts(fonts);
+}
+
+/// 在常见系统字体路径里找一个中文字体。返回 (字节, 字体集合内索引, 路径)。
+#[cfg(not(target_arch = "wasm32"))]
+fn load_system_cjk_font() -> Option<(Vec<u8>, u32, String)> {
+    let candidates: &[(&str, u32)] = &[
+        // Windows
+        ("C:/Windows/Fonts/msyh.ttc", 0),
+        ("C:/Windows/Fonts/msyhl.ttc", 0),
+        ("C:/Windows/Fonts/simhei.ttf", 0),
+        ("C:/Windows/Fonts/simsun.ttc", 0),
+        // Linux
+        ("/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc", 2),
+        ("/usr/share/fonts/noto-cjk/NotoSansCJK-Regular.ttc", 2),
+        ("/usr/share/fonts/truetype/wqy/wqy-microhei.ttc", 0),
+        ("/usr/share/fonts/wenquanyi/wqy-microhei/wqy-microhei.ttc", 0),
+        // macOS
+        ("/System/Library/Fonts/PingFang.ttc", 0),
+        ("/System/Library/Fonts/STHeiti Light.ttc", 0),
+    ];
+    if let Ok(custom) = std::env::var("WAVANALY_CJK_FONT")
+        && let Ok(bytes) = std::fs::read(&custom)
+    {
+        return Some((bytes, 0, custom));
+    }
+    for (path, index) in candidates {
+        if let Ok(bytes) = std::fs::read(path) {
+            return Some((bytes, *index, (*path).to_string()));
+        }
+    }
+    None
+}
+
+#[cfg(target_arch = "wasm32")]
+fn load_system_cjk_font() -> Option<(Vec<u8>, u32, String)> {
+    None
 }
 
 pub fn run_egui(cc: &CreationContext, mut state: SystemState) -> Result<Box<dyn App>> {

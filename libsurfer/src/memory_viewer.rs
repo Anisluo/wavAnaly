@@ -22,9 +22,9 @@ impl MemoryViewerFormat {
     #[must_use]
     pub fn label(self) -> &'static str {
         match self {
-            Self::Decimal => "Decimal",
-            Self::Hexadecimal => "Hexadecimal",
-            Self::Binary => "Binary",
+            Self::Decimal => t!("Decimal"),
+            Self::Hexadecimal => t!("Hexadecimal"),
+            Self::Binary => t!("Binary"),
         }
     }
 }
@@ -112,10 +112,10 @@ pub(crate) enum ValueMatchMode {
 impl ValueMatchMode {
     fn label(self) -> &'static str {
         match self {
-            Self::Contains => "Value contains",
-            Self::StartsWith => "Value starts with",
-            Self::Regex => "Regular expression",
-            Self::Fuzzy => "Fuzzy",
+            Self::Contains => t!("Value contains"),
+            Self::StartsWith => t!("Value starts with"),
+            Self::Regex => t!("Regular expression"),
+            Self::Fuzzy => t!("Fuzzy"),
         }
     }
 }
@@ -235,7 +235,7 @@ fn build_value_matcher(
     }
 }
 fn value_match_menu(ui: &mut egui::Ui, mode: &mut ValueMatchMode, case_insensitive: &mut bool) {
-    ui.checkbox(case_insensitive, "Case insensitive");
+    ui.checkbox(case_insensitive, t!("Case insensitive"));
 
     ui.separator();
 
@@ -261,7 +261,7 @@ fn matching_text_edit(
             [width, 20.0],
             egui::TextEdit::singleline(value).hint_text(hint),
         )
-        .on_hover_text("Matching options");
+        .on_hover_text(t!("Matching options"));
 
     text_response.context_menu(|ui| {
         value_match_menu(ui, mode, case_insensitive);
@@ -275,7 +275,7 @@ fn matching_text_edit(
             !value.is_empty(),
             Button::new(icons::CLOSE_FILL).frame(false),
         )
-        .on_hover_text("Clear")
+        .on_hover_text(t!("Clear"))
         .clicked()
     {
         value.clear();
@@ -305,21 +305,21 @@ fn marker_combo(ui: &mut egui::Ui, id: &'static str, selected: &mut ChangeModes)
     };
 
     egui::ComboBox::from_id_salt(id)
-        .selected_text(format!("Marker {selected_marker}"))
+        .selected_text(format!("{} {selected_marker}", t!("Marker")))
         .show_ui(ui, |ui| {
             for marker_index in 0..=254 {
                 ui.selectable_value(
                     selected,
                     ChangeModes::ChangedBtwCursorAndMarker(marker_index),
-                    format!("Marker {marker_index}"),
+                    format!("{} {marker_index}", t!("Marker")),
                 );
             }
         });
 }
 fn change_mode_menu(ui: &mut egui::Ui, marker_id: &'static str, selected: &mut ChangeModes) {
-    ui.radio_value(selected, ChangeModes::AllValues, "None");
+    ui.radio_value(selected, ChangeModes::AllValues, t!("None"));
 
-    ui.radio_value(selected, ChangeModes::ChangedAtCursor, "Cursor");
+    ui.radio_value(selected, ChangeModes::ChangedAtCursor, t!("Cursor"));
 
     let marker_index = match *selected {
         ChangeModes::ChangedBtwCursorAndMarker(index) => index,
@@ -329,7 +329,7 @@ fn change_mode_menu(ui: &mut egui::Ui, marker_id: &'static str, selected: &mut C
     ui.radio_value(
         selected,
         ChangeModes::ChangedBtwCursorAndMarker(marker_index),
-        "Cursor and marker",
+        t!("Cursor and marker"),
     );
 
     if matches!(selected, ChangeModes::ChangedBtwCursorAndMarker(_)) {
@@ -355,7 +355,7 @@ fn highlight_dropdown(
             false,
         )
         .show_header(ui, |ui| {
-            left_aligned_header(ui, "Highlight");
+            left_aligned_header(ui, t!("Highlight"));
         })
         .body(|ui| {
             ui.allocate_ui_with_layout(
@@ -365,12 +365,12 @@ fn highlight_dropdown(
                     change_mode_menu(ui, "memory_viewer_highlight_marker", selected);
 
                     ui.horizontal(|ui| {
-                        ui.label("Value:");
+                        ui.label(t!("Value:"));
 
                         matching_text_edit(
                             ui,
                             highlight_value,
-                            "Highlight",
+                            t!("Highlight"),
                             120.0,
                             match_mode,
                             case_insensitive,
@@ -395,7 +395,7 @@ fn filter_dropdown(
             false,
         )
         .show_header(ui, |ui| {
-            left_aligned_header(ui, "Filter");
+            left_aligned_header(ui, t!("Filter"));
         })
         .body(|ui| {
             ui.allocate_ui_with_layout(
@@ -405,12 +405,12 @@ fn filter_dropdown(
                     change_mode_menu(ui, "memory_viewer_filter_marker", selected);
 
                     ui.horizontal(|ui| {
-                        ui.label("Value:");
+                        ui.label(t!("Value:"));
 
                         matching_text_edit(
                             ui,
                             filter_value,
-                            "Filter",
+                            t!("Filter"),
                             120.0,
                             match_mode,
                             case_insensitive,
@@ -430,15 +430,15 @@ impl SystemState {
         let mut open = self.memory_viewer.open;
         let translator_name = self.memory_viewer.value_format.clone();
         let translator = self.translators.get_translator(&translator_name);
-        egui::Window::new("Memory Viewer")
+        egui::Window::new(t!("Memory Viewer"))
             .open(&mut open)
             .resizable(true)
             .default_size([520.0, 500.0])
             .show(ctx, |ui| {
-                ui.heading("Memory Viewer");
+                ui.heading(t!("Memory Viewer"));
 
                 let Some(scope) = self.memory_viewer.scope.clone() else {
-                    ui.label("No variable selected");
+                    ui.label(t!("No variable selected"));
                     return;
                 };
 
@@ -448,22 +448,22 @@ impl SystemState {
                     .clone()
                     .unwrap_or_else(|| scope.name());
 
-                ui.label(format!("Variable: {display_name}"));
+                ui.label(format!("{}: {display_name}", t!("Variable")));
 
                 let Some(waves) = &self.user.waves else {
-                    ui.label("No waveform loaded");
+                    ui.label(t!("No waveform loaded"));
                     return;
                 };
 
                 let Some(cursor) = waves.cursor.as_ref().and_then(num::BigInt::to_biguint) else {
-                    ui.label("Place the cursor to inspect values.");
+                    ui.label(t!("Place the cursor to inspect values."));
                     return;
                 };
 
-                ui.label(format!("Time: {cursor}"));
+                ui.label(format!("{}: {cursor}", t!("Time")));
 
                 let Some(wave_container) = waves.inner.as_waves() else {
-                    ui.label("No wave container available");
+                    ui.label(t!("No wave container available"));
                     return;
                 };
 
@@ -577,7 +577,7 @@ impl SystemState {
                         rows: Rc::new(rows.clone()),
                     });
                 }
-                ui.label(format!("Structured entries: {}", rows.len()));
+                ui.label(format!("{}: {}", t!("Structured entries"), rows.len()));
 
                 ui.separator();
 
@@ -599,7 +599,7 @@ impl SystemState {
                         &mut self.memory_viewer.highlight_case_insensitive,
                     );
 
-                    ui.checkbox(&mut self.memory_viewer.color_values, "Color values");
+                    ui.checkbox(&mut self.memory_viewer.color_values, t!("Color values"));
                 });
                 let search_matcher = build_value_matcher(
                     &self.memory_viewer.search_value,
@@ -655,11 +655,11 @@ impl SystemState {
                 let mut find_previous_requested = false;
                 let mut find_next_requested = false;
                 ui.horizontal(|ui| {
-                    ui.label("Find:");
+                    ui.label(t!("Find:"));
                     matching_text_edit(
                         ui,
                         &mut self.memory_viewer.search_value,
-                        "Find",
+                        t!("Find"),
                         160.0,
                         &mut self.memory_viewer.search_match_mode,
                         &mut self.memory_viewer.search_case_insensitive,
@@ -667,7 +667,7 @@ impl SystemState {
 
                     if ui
                         .add(egui::Button::new(icons::ARROW_UP_LINE).frame(false))
-                        .on_hover_text("Previous match")
+                        .on_hover_text(t!("Previous match"))
                         .clicked()
                     {
                         find_previous_requested = true;
@@ -675,43 +675,43 @@ impl SystemState {
 
                     if ui
                         .add(egui::Button::new(icons::ARROW_DOWN_LINE).frame(false))
-                        .on_hover_text("Next match")
+                        .on_hover_text(t!("Next match"))
                         .clicked()
                     {
                         find_next_requested = true;
                     }
                     if !self.memory_viewer.search_value.is_empty() {
                         if total_matches == 0 {
-                            ui.label("No results");
+                            ui.label(t!("No results"));
                         } else {
-                            ui.label(format!("{current_match} of {total_matches}"));
+                            ui.label(format!("{current_match} {} {total_matches}", t!("of")));
                         }
                     }
                 });
                 ui.separator();
                 ui.horizontal(|ui| {
-                    ui.label("Index format:");
+                    ui.label(t!("Index format:"));
                     egui::ComboBox::from_id_salt("memory_viewer_index_format")
                         .selected_text(self.memory_viewer.index_format.label())
                         .show_ui(ui, |ui| {
                             ui.selectable_value(
                                 &mut self.memory_viewer.index_format,
                                 MemoryViewerFormat::Decimal,
-                                "Decimal",
+                                t!("Decimal"),
                             );
                             ui.selectable_value(
                                 &mut self.memory_viewer.index_format,
                                 MemoryViewerFormat::Hexadecimal,
-                                "Hexadecimal",
+                                t!("Hexadecimal"),
                             );
                             ui.selectable_value(
                                 &mut self.memory_viewer.index_format,
                                 MemoryViewerFormat::Binary,
-                                "Binary",
+                                t!("Binary"),
                             );
                         });
 
-                    ui.label("Value format:");
+                    ui.label(t!("Value format:"));
 
                     let (mut preferred_translators, mut bad_translators): (Vec<_>, Vec<_>) =
                         variables
@@ -755,7 +755,7 @@ impl SystemState {
 
                             if !bad_translators.is_empty() {
                                 ui.separator();
-                                ui.label("Not recommended");
+                                ui.label(t!("Not recommended"));
 
                                 for name in bad_translators {
                                     ui.selectable_value(
@@ -772,25 +772,25 @@ impl SystemState {
                 let mut shrink_columns_requested = false;
 
                 ui.horizontal(|ui| {
-                    ui.label("Jump to index:");
+                    ui.label(t!("Jump to index:"));
                     let response = ui.add_sized(
                         [60.0, 20.0],
                         egui::TextEdit::singleline(&mut self.memory_viewer.jump_to_index),
                     );
 
-                    if ui.button("Jump").clicked()
+                    if ui.button(t!("Jump")).clicked()
                         || (response.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)))
                     {
                         jump_requested = true;
                     }
-                    ui.label("Columns:");
+                    ui.label(t!("Columns:"));
 
                     ui.add(
                         DragValue::new(&mut self.memory_viewer.value_column_count).range(1..=32),
                     );
                     if ui
                         .add(Button::new(icons::ASPECT_RATIO_FILL).frame(false))
-                        .on_hover_text("Auto-size")
+                        .on_hover_text(t!("Auto-size"))
                         .clicked()
                     {
                         shrink_columns_requested = true;
@@ -892,13 +892,13 @@ impl SystemState {
                                 table
                                     .header(24.0, |mut header| {
                                         header.col(|ui| {
-                                            ui.monospace("Index");
+                                            ui.monospace(t!("Index"));
                                         });
 
                                         for column_index in 0..value_column_count {
                                             header.col(|ui| {
                                                 if column_index == 0 {
-                                                    ui.monospace("Value");
+                                                    ui.monospace(t!("Value"));
                                                 } else {
                                                     ui.monospace(format!("+{column_index}"));
                                                 }

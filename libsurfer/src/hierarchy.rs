@@ -93,17 +93,17 @@ impl SystemState {
             .frame(Frame::new().inner_margin(Margin::same(5)))
             .show(ui, |ui| {
                 ui.horizontal(|ui| {
-                    ui.heading("Scopes")
+                    ui.heading(t!("Scopes"))
                         .context_menu(|ui| self.hierarchy_menu(msgs, ui));
                     if self.user.waves.is_some() {
                         let default_padding = ui.spacing().button_padding;
                         ui.spacing_mut().button_padding = egui::vec2(0.0, default_padding.y);
                         ui.button(icons::MENU_UNFOLD_FILL)
-                            .on_hover_text("Expand all scopes")
+                            .on_hover_text(t!("Expand all scopes"))
                             .clicked()
                             .then(|| msgs.push(Message::ExpandScope(ScopeExpandType::ExpandAll)));
                         ui.button(icons::MENU_FOLD_FILL)
-                            .on_hover_text("Collapse all scopes")
+                            .on_hover_text(t!("Collapse all scopes"))
                             .clicked()
                             .then(|| msgs.push(Message::ExpandScope(ScopeExpandType::CollapseAll)));
                         ui.spacing_mut().button_padding = default_padding;
@@ -125,7 +125,7 @@ impl SystemState {
             .frame(Frame::new().inner_margin(Margin::same(5)))
             .show(ui, |ui| {
                 ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
-                    ui.heading("Variables")
+                    ui.heading(t!("Variables"))
                         .context_menu(|ui| self.hierarchy_menu(msgs, ui));
                     ui.add_space(3.0);
                     self.draw_variable_filter_edit(ui, msgs, false);
@@ -172,7 +172,7 @@ impl SystemState {
                     label.append("D ", 0.0, text_format.clone());
                 }
                 // Name column
-                label.append("Name", 0.0, text_format);
+                label.append(t!("Name"), 0.0, text_format);
 
                 ui.add(egui::Button::selectable(false, label));
             },
@@ -272,7 +272,7 @@ impl SystemState {
             ui.with_layout(
                 Layout::top_down(Align::LEFT).with_cross_justify(true),
                 |ui| {
-                    ui.label("Parameters");
+                    ui.label(t!("Parameters"));
                 },
             );
         })
@@ -291,7 +291,7 @@ impl SystemState {
             |ui| {
                 Frame::new().inner_margin(Margin::same(5)).show(ui, |ui| {
                     ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
-                        ui.heading("Hierarchy")
+                        ui.heading(t!("Hierarchy"))
                             .context_menu(|ui| self.hierarchy_menu(msgs, ui));
                         ui.add_space(3.0);
                         self.draw_variable_filter_edit(ui, msgs, false);
@@ -320,7 +320,7 @@ impl SystemState {
             |ui| {
                 Frame::new().inner_margin(Margin::same(5)).show(ui, |ui| {
                     ui.with_layout(Layout::left_to_right(Align::TOP), |ui| {
-                        ui.heading("Variables")
+                        ui.heading(t!("Variables"))
                             .context_menu(|ui| self.hierarchy_menu(msgs, ui));
                         ui.add_space(3.0);
                         self.draw_variable_filter_edit(ui, msgs, true);
@@ -405,8 +405,8 @@ impl SystemState {
                     ui.with_layout(
                         Layout::top_down(Align::LEFT).with_cross_justify(true),
                         |ui| {
-                            ui.label("Streams are not yet supported.");
-                            ui.label("Select another view.");
+                            ui.label(t!("Streams are not yet supported."));
+                            ui.label(t!("Select another view."));
                         },
                     );
                 }
@@ -529,16 +529,16 @@ impl SystemState {
             });
         }
         response.context_menu(|ui| {
-            if ui.button("Add scope").clicked() {
+            if ui.button(t!("Add scope")).clicked() {
                 msgs.push(Message::AddScope(scope.clone(), false));
             }
-            if ui.button("Add scope recursively").clicked() {
+            if ui.button(t!("Add scope recursively")).clicked() {
                 msgs.push(Message::AddScope(scope.clone(), true));
             }
-            if ui.button("Add scope as group").clicked() {
+            if ui.button(t!("Add scope as group")).clicked() {
                 msgs.push(Message::AddScopeAsGroup(scope.clone(), false));
             }
-            if ui.button("Add scope as group recursively").clicked() {
+            if ui.button(t!("Add scope as group recursively")).clicked() {
                 msgs.push(Message::AddScopeAsGroup(scope.clone(), true));
             }
 
@@ -547,11 +547,11 @@ impl SystemState {
                 .as_waves()
                 .is_some_and(|wc| wc.scope_is_array(scope));
 
-            if is_array_scope && ui.button("Show frame buffer").clicked() {
+            if is_array_scope && ui.button(t!("Show frame buffer")).clicked() {
                 msgs.push(Message::SetFrameBufferArray(scope.clone()));
             }
 
-            if is_array_scope && ui.button("Show Memory Viewer").clicked() {
+            if is_array_scope && ui.button(t!("Show Memory Viewer")).clicked() {
                 msgs.push(Message::OpenMemoryViewer {
                     scope: scope.clone(),
                     name: Some(scope.name()),
@@ -839,7 +839,7 @@ impl SystemState {
             let value = if meta.is_some_and(surfer_translation_types::VariableMeta::is_parameter) {
                 let res = wave_container.query_variable(variable, &BigUint::ZERO).ok();
                 res.and_then(|o| o.and_then(|q| q.current.map(|v| format!(": {}", v.1))))
-                    .unwrap_or_else(|| ": Undefined".to_string())
+                    .unwrap_or_else(|| format!(": {}", t!("Undefined")))
             } else {
                 String::new()
             };

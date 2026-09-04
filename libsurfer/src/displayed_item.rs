@@ -15,9 +15,7 @@ use crate::wave_container::VariableMeta;
 use crate::config::SurferConfig;
 use crate::transaction_container::TransactionStreamRef;
 use crate::wave_container::{FieldRef, VariableRef, VariableRefExt, WaveContainer};
-use crate::{
-    marker::DEFAULT_MARKER_NAME, time::DEFAULT_TIMELINE_NAME, variable_name_type::VariableNameType,
-};
+use crate::variable_name_type::VariableNameType;
 
 const DEFAULT_DIVIDER_NAME: &str = "";
 
@@ -287,7 +285,7 @@ impl DisplayedMarker {
     fn marker_name(&self) -> String {
         self.name
             .clone()
-            .unwrap_or_else(|| DEFAULT_MARKER_NAME.to_string())
+            .unwrap_or_else(|| t!("Marker").to_string())
     }
 }
 
@@ -336,7 +334,7 @@ impl DisplayedPlaceholder {
 
     pub fn rich_text(&self, text_color: Color32, style: &Style, layout_job: &mut LayoutJob) {
         let s = self.manual_name.as_ref().unwrap_or(&self.display_name);
-        RichText::new("Not available: ".to_owned() + s)
+        RichText::new(t!("Not available: ").to_owned() + s)
             .color(text_color)
             .italics()
             .append_to(layout_job, style, FontSelection::Default, Align::Center);
@@ -433,7 +431,7 @@ impl DisplayedItem {
             DisplayedItem::TimeLine(timeline) => timeline
                 .name
                 .as_ref()
-                .unwrap_or(&DEFAULT_TIMELINE_NAME.to_string())
+                .unwrap_or(&t!("Time").to_string())
                 .clone(),
             DisplayedItem::Placeholder(placeholder) => placeholder
                 .manual_name
@@ -487,7 +485,7 @@ impl DisplayedItem {
                     .manual_name
                     .as_ref()
                     .unwrap_or(&placeholder.display_name);
-                RichText::new("Not available: ".to_owned() + s)
+                RichText::new(t!("Not available: ").to_owned() + s)
                     .color(color)
                     .italics()
                     .append_to(layout_job, style, FontSelection::Default, Align::Center);

@@ -811,32 +811,36 @@ pub fn draw_progress_information(ui: &mut egui::Ui, progress_data: &LoadProgress
         LoadProgressStatus::Connecting(url) => {
             ui.horizontal(|ui| {
                 ui.spinner();
-                ui.monospace(format!("Connecting {url}"));
+                ui.monospace(format!("{} {url}", t!("Connecting")));
             });
         }
         LoadProgressStatus::Downloading(url) => {
             ui.horizontal(|ui| {
                 ui.spinner();
-                ui.monospace(format!("Downloading {url}"));
+                ui.monospace(format!("{} {url}", t!("Downloading")));
             });
         }
         LoadProgressStatus::ReadingHeader(source) => {
             ui.spinner();
-            ui.monospace(format!("Loading variable names from {source}"));
+            ui.monospace(format!("{} {source}", t!("Loading variable names from")));
         }
         LoadProgressStatus::ReadingBody(source, 0, _) => {
             ui.spinner();
-            ui.monospace(format!("Loading variable change data from {source}"));
+            ui.monospace(format!(
+                "{} {source}",
+                t!("Loading variable change data from")
+            ));
         }
         LoadProgressStatus::LoadingVariables(num) => {
             ui.spinner();
-            ui.monospace(format!("Loading {num} variables"));
+            ui.monospace(format!("{} {num} {}", t!("Loading"), t!("variables")));
         }
         LoadProgressStatus::ReadingBody(source, total, bytes_done) => {
             let num_bytes = bytes_done.load(std::sync::atomic::Ordering::SeqCst);
             let progress = num_bytes as f32 / *total as f32;
             ui.monospace(format!(
-                "Loading variable change data from {source}. {} / {}",
+                "{} {source}. {} / {}",
+                t!("Loading variable change data from"),
                 bytesize::ByteSize::b(num_bytes),
                 bytesize::ByteSize::b(*total),
             ));

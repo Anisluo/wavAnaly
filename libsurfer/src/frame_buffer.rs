@@ -144,14 +144,14 @@ impl SystemState {
         msgs: &mut Vec<Message>,
     ) {
         let mut open = true;
-        egui::Window::new("Frame Buffer")
+        egui::Window::new(t!("Frame Buffer"))
             .open(&mut open)
             .resizable(true)
             .show(ctx, |ui| {
                 let frame_buffer_value = self.selected_variable_for_frame_buffer();
                 let Some((bits, array_cache_key, variable_name)) = frame_buffer_value.as_ref()
                 else {
-                    ui.label("Place the cursor.");
+                    ui.label(t!("Place the cursor."));
                     return;
                 };
 
@@ -159,10 +159,10 @@ impl SystemState {
                     let settings = &mut self.user.frame_buffer;
                     let color_settings = &mut settings.color_settings;
 
-                    ui.checkbox(&mut settings.square_pixels, "Square pixels");
+                    ui.checkbox(&mut settings.square_pixels, t!("Square pixels"));
 
                     ui.horizontal(|ui| {
-                        ui.label("Color mode");
+                        ui.label(t!("Color mode"));
                         egui::ComboBox::from_id_salt("frame_buffer_color_mode")
                             .selected_text(color_settings.color_mode.string())
                             .show_ui(ui, |ui| {
@@ -187,7 +187,7 @@ impl SystemState {
                     match color_settings.color_mode {
                         FrameBufferColorMode::Grayscale => {
                             ui.horizontal(|ui| {
-                                ui.label("Grayscale bits");
+                                ui.label(t!("Grayscale bits"));
                                 ui.add(
                                     DragValue::new(&mut color_settings.grayscale_bits).range(1..=8),
                                 );
@@ -195,21 +195,21 @@ impl SystemState {
                         }
                         FrameBufferColorMode::Rgb => {
                             ui.horizontal(|ui| {
-                                ui.label("R bits");
+                                ui.label(t!("R bits"));
                                 ui.add(DragValue::new(&mut color_settings.r_bits).range(0..=8));
-                                ui.label("G bits");
+                                ui.label(t!("G bits"));
                                 ui.add(DragValue::new(&mut color_settings.g_bits).range(0..=8));
-                                ui.label("B bits");
+                                ui.label(t!("B bits"));
                                 ui.add(DragValue::new(&mut color_settings.b_bits).range(0..=8));
                             });
                         }
                         FrameBufferColorMode::YCbCr => {
                             ui.horizontal(|ui| {
-                                ui.label("Y bits");
+                                ui.label(t!("Y bits"));
                                 ui.add(DragValue::new(&mut color_settings.y_bits).range(0..=8));
-                                ui.label("Cb bits");
+                                ui.label(t!("Cb bits"));
                                 ui.add(DragValue::new(&mut color_settings.cb_bits).range(0..=8));
-                                ui.label("Cr bits");
+                                ui.label(t!("Cr bits"));
                                 ui.add(DragValue::new(&mut color_settings.cr_bits).range(0..=8));
                             });
                         }
@@ -221,7 +221,7 @@ impl SystemState {
                 ui.separator();
 
                 if bits.is_empty() {
-                    ui.label("No bits available");
+                    ui.label(t!("No bits available"));
                     return;
                 }
 
@@ -244,7 +244,7 @@ impl SystemState {
                             let b_bits = color_settings_key.b_bits as usize;
                             let bits_per_pixel = r_bits + g_bits + b_bits;
                             if bits_per_pixel == 0 {
-                                ui.label("Set at least one RGB channel bit count above zero.");
+                                ui.label(t!("Set at least one RGB channel bit count above zero."));
                                 return;
                             }
                             decode_rgb_pixels(bits, r_bits, g_bits, b_bits)
@@ -255,7 +255,9 @@ impl SystemState {
                             let cr_bits = color_settings_key.cr_bits as usize;
                             let bits_per_pixel = y_bits + cb_bits + cr_bits;
                             if bits_per_pixel == 0 {
-                                ui.label("Set at least one YCbCr channel bit count above zero.");
+                                ui.label(t!(
+                                    "Set at least one YCbCr channel bit count above zero."
+                                ));
                                 return;
                             }
                             decode_ycbcr_pixels(bits, y_bits, cb_bits, cr_bits)
@@ -276,7 +278,7 @@ impl SystemState {
                 };
 
                 if pixel_colors.is_empty() {
-                    ui.label("No pixels to draw with current bit settings.");
+                    ui.label(t!("No pixels to draw with current bit settings."));
                     return;
                 }
 
@@ -284,9 +286,12 @@ impl SystemState {
                 let columns = settings.pixels_per_row.min(pixel_colors.len()).max(1);
                 let rows = pixel_colors.len().div_ceil(columns);
                 ui.horizontal(|ui| {
-                    ui.label(format!("Var: {variable_name} | {columns}×{rows}"));
+                    ui.label(format!(
+                        "{}: {variable_name} | {columns}×{rows}",
+                        t!("Var")
+                    ));
 
-                    if ui.button("Copy image").clicked() {
+                    if ui.button(t!("Copy image")).clicked() {
                         let total = columns * rows;
                         let mut padded = pixel_colors.to_vec();
                         padded.resize(total, Color32::BLACK);
@@ -304,7 +309,7 @@ impl SystemState {
                 settings.pixels_per_row = settings.pixels_per_row.clamp(1, max_columns);
 
                 ui.horizontal(|ui| {
-                    ui.label("Pixels in x-direction");
+                    ui.label(t!("Pixels in x-direction"));
                     ui.add(
                         egui::Slider::new(&mut settings.pixels_per_row, 1..=max_columns).integer(),
                     );
@@ -383,15 +388,15 @@ impl SystemState {
             }
             ui.horizontal(|ui| {
                 if total_levels == 1 {
-                    ui.label("First array index");
+                    ui.label(t!("First array index"));
                 } else {
-                    ui.label(format!("Level {} first index", i + 1));
+                    ui.label(format!("{} {} {}", t!("Level"), i + 1, t!("first index")));
                 }
                 ui.add(DragValue::new(&mut level.first_index).range(min..=max));
                 if total_levels == 1 {
-                    ui.label("Last array index");
+                    ui.label(t!("Last array index"));
                 } else {
-                    ui.label(format!("Level {} last index", i + 1));
+                    ui.label(format!("{} {} {}", t!("Level"), i + 1, t!("last index")));
                 }
                 ui.add(DragValue::new(&mut level.last_index).range(min..=max));
             });

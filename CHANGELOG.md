@@ -1,5 +1,24 @@
 # Changelog
 
+## wavAnaly
+
+### [wavAnaly 0.1.0] - 2026-09-04 (based on Surfer 0.7.0)
+
+#### Added
+
+* Protocol decoders producing virtual string signals (`libsurfer/src/decoders/`): `decode_i2c <scl> <sda> [name]`.
+* Simplified Chinese UI (`libsurfer/src/i18n/`), `language` config key, `WAVANALY_LANG` env override.
+* System CJK font is loaded at start-up as a fallback font (`WAVANALY_CJK_FONT` to override).
+
+#### Changed
+
+* Application, binary and config directory renamed to wavAnaly / `wavanaly` / `io.wavanaly`.
+* Default window 1600x900 at (120, 60) instead of 1920x1080 at (0, 0).
+
+---
+
+# Surfer changelog (upstream)
+
 All notable changes to this project will be documented in this file.
 
 Surfer is currently unstable and all 0.x releases are expected to contain

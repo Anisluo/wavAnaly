@@ -55,7 +55,7 @@ impl SystemState {
             }
             if let Some(datetime) = waves.inner.metadata().date {
                 ui.separator();
-                ui.label(format!("Generated: {datetime}"));
+                ui.label(format!("{}: {datetime}", t!("Generated")));
             }
         }
 
@@ -79,9 +79,13 @@ impl SystemState {
                 ui.separator();
                 ui.spinner();
                 if in_progress_count == 1 {
-                    ui.label("Building analog cache…");
+                    ui.label(t!("Building analog cache…"));
                 } else {
-                    ui.label(format!("Building {in_progress_count} analog caches…"));
+                    ui.label(format!(
+                        "{} {in_progress_count} {}",
+                        t!("Building"),
+                        t!("analog caches…")
+                    ));
                 }
             }
         }
@@ -114,11 +118,11 @@ impl SystemState {
                 }
                 if let Some(undo_op) = &self.undo_stack.last() {
                     ui.separator();
-                    ui.label(format!("Undo: {}", undo_op.message));
+                    ui.label(format!("{}: {}", t!("Undo"), undo_op.message));
                 }
                 if let Some(count) = &self.user.count {
                     ui.separator();
-                    ui.label(format!("Count: {count}"));
+                    ui.label(format!("{}: {count}", t!("Count")));
                 }
             });
         }

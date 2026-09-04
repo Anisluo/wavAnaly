@@ -17,28 +17,29 @@ impl SystemState {
                 .format_shortcut(ShortcutAction::ShowCommandPrompt);
 
             ui.label(RichText::new(
-                "Drag and drop a VCD, FST, or GHW file here to open it",
+                t!("Drag and drop a VCD, FST, or GHW file here to open it"),
             ));
 
             #[cfg(target_arch = "wasm32")]
-            ui.label(RichText::new(format!(
-                "Or press {show_command_prompt} and type load_url"
-            )));
+            ui.label(RichText::new(
+                t!("Or press {} and type load_url").replacen("{}", &show_command_prompt, 1),
+            ));
             #[cfg(not(target_arch = "wasm32"))]
-            ui.label(RichText::new(format!(
-                "Or press {show_command_prompt} and type load_file or load_url"
-            )));
+            ui.label(RichText::new(
+                t!("Or press {} and type load_file or load_url")
+                    .replacen("{}", &show_command_prompt, 1),
+            ));
             #[cfg(target_arch = "wasm32")]
             ui.label(RichText::new(
-                "Or use the file menu or toolbar to open a URL",
+                t!("Or use the file menu or toolbar to open a URL"),
             ));
             #[cfg(not(target_arch = "wasm32"))]
             ui.label(RichText::new(
-                "Or use the file menu or toolbar to open a file or a URL",
+                t!("Or use the file menu or toolbar to open a file or a URL"),
             ));
             ui.horizontal(|ui| {
-                ui.label(RichText::new("Or click"));
-                if ui.link("here").clicked() {
+                ui.label(RichText::new(t!("Or click")));
+                if ui.link(t!("here")).clicked() {
                     self.channels
                         .msg_sender
                         .send(Message::LoadWaveformFileFromUrl(
@@ -47,13 +48,13 @@ impl SystemState {
                         ))
                         .ok();
                 }
-                ui.label("to open an example waveform");
+                ui.label(t!("to open an example waveform"));
             });
 
             #[cfg(not(test))]
             if !self.file_history.files().is_empty() {
                 ui.add_space(10.0);
-                ui.label(RichText::new("Recent files"));
+                ui.label(RichText::new(t!("Recent files")));
 
                 let labels = self.file_history.display_labels();
                 for (path, label) in self.file_history.files().iter().zip(labels.iter()) {
@@ -80,7 +81,7 @@ impl SystemState {
         #[cfg(target_arch = "wasm32")]
         {
             ui.label(RichText::new(
-            "Note that this web based version is a bit slower than a natively installed version. There may also be a long delay with unresponsiveness when loading large waveforms because the web assembly version does not currently support multi threading.",
+            t!("Note that this web based version is a bit slower than a natively installed version. There may also be a long delay with unresponsiveness when loading large waveforms because the web assembly version does not currently support multi threading."),
         ));
 
             ui.hyperlink_to(
@@ -93,39 +94,39 @@ impl SystemState {
 
 pub fn draw_about_window(ctx: &Context, msgs: &mut Vec<Message>) {
     let mut open = true;
-    Window::new("About Surfer")
+    Window::new(t!("About wavAnaly"))
         .open(&mut open)
         .collapsible(false)
         .resizable(true)
         .show(ctx, |ui| {
             ui.vertical_centered(|ui| {
-                ui.label(RichText::new("🏄 Surfer").monospace().size(24.));
+                ui.label(RichText::new(t!("🏄 wavAnaly")).monospace().size(24.));
                 ui.add_space(20.);
-                ui.label(format!(
-                    "Cargo version: {ver}",
-                    ver = env!("CARGO_PKG_VERSION")
-                ));
+                ui.label(
+                    t!("Cargo version: {}")
+                        .replacen("{}", env!("CARGO_PKG_VERSION"), 1),
+                );
                 if ui
-                    .small_button(format!(
-                        "Git version: {ver}",
-                        ver = env!("VERGEN_GIT_DESCRIBE")
-                    ))
-                    .on_hover_text("Click to copy git version")
+                    .small_button(
+                        t!("Git version: {}")
+                            .replacen("{}", env!("VERGEN_GIT_DESCRIBE"), 1),
+                    )
+                    .on_hover_text(t!("Click to copy git version"))
                     .clicked()
                 {
                     ctx.copy_text(env!("VERGEN_GIT_DESCRIBE").to_string());
                 }
-                ui.label(format!(
-                    "Build date: {date}",
-                    date = env!("VERGEN_BUILD_DATE")
-                ));
+                ui.label(
+                    t!("Build date: {}")
+                        .replacen("{}", env!("VERGEN_BUILD_DATE"), 1),
+                );
                 ui.hyperlink_to(
-                    (icons::GITLAB_FILL).to_string() + " repository",
+                    (icons::GITLAB_FILL).to_string() + t!(" repository"),
                     "https://gitlab.com/surfer-project/surfer",
                 );
-                ui.hyperlink_to("Homepage", "https://surfer-project.org/");
+                ui.hyperlink_to(t!("Homepage"), "https://surfer-project.org/");
                 ui.add_space(10.);
-                if ui.button("Close").clicked() {
+                if ui.button(t!("Close")).clicked() {
                     msgs.push(Message::SetAboutVisible(false));
                 }
             })
@@ -142,7 +143,7 @@ pub fn draw_quickstart_help_window(
 ) {
     let mut open = true;
     let show_command_prompt = shortcuts.format_shortcut(ShortcutAction::ShowCommandPrompt);
-    Window::new("🏄 Surfer quick start")
+    Window::new(t!("🏄 wavAnaly quick start"))
         .collapsible(true)
         .resizable(true)
         .pivot(Align2::CENTER_CENTER)
@@ -155,33 +156,34 @@ pub fn draw_quickstart_help_window(
             ui.vertical(|ui| {
                 ui.add_space(5.);
 
-                ui.label(RichText::new("Controls").size(20.));
+                ui.label(RichText::new(t!("Controls")).size(20.));
                 ui.add_space(5.);
-                ui.label("↔ Use scroll and ctrl+scroll to navigate the waveform");
-                ui.label(format!(
-                    "🚀 Press {show_command_prompt} to open the command palette"
-                ));
-                ui.label("✋ Click the middle mouse button for gestures");
-                ui.label("❓ See the help menu for more controls");
+                ui.label(t!("↔ Use scroll and ctrl+scroll to navigate the waveform"));
+                ui.label(
+                    t!("🚀 Press {} to open the command palette")
+                        .replacen("{}", &show_command_prompt, 1),
+                );
+                ui.label(t!("✋ Click the middle mouse button for gestures"));
+                ui.label(t!("❓ See the help menu for more controls"));
                 ui.add_space(10.);
-                ui.label(RichText::new("Adding traces").size(20.));
+                ui.label(RichText::new(t!("Adding traces")).size(20.));
                 ui.add_space(5.);
-                ui.label("Add more traces using the command palette or using the sidebar");
+                ui.label(t!("Add more traces using the command palette or using the sidebar"));
                 ui.add_space(10.);
-                ui.label(RichText::new("Opening files").size(20.));
+                ui.label(RichText::new(t!("Opening files")).size(20.));
                 ui.add_space(5.);
-                ui.label("Open a new file by");
-                ui.label("- dragging a VCD, FST, or GHW file");
+                ui.label(t!("Open a new file by"));
+                ui.label(t!("- dragging a VCD, FST, or GHW file"));
                 #[cfg(target_arch = "wasm32")]
-                ui.label("- typing load_url in the command palette");
+                ui.label(t!("- typing load_url in the command palette"));
                 #[cfg(not(target_arch = "wasm32"))]
-                ui.label("- typing load_url or load_file in the command palette");
-                ui.label("- using the file menu");
-                ui.label("- using the toolbar");
+                ui.label(t!("- typing load_url or load_file in the command palette"));
+                ui.label(t!("- using the file menu"));
+                ui.label(t!("- using the toolbar"));
                 ui.add_space(10.);
             });
             ui.vertical_centered(|ui| {
-                if ui.button("Close").clicked() {
+                if ui.button(t!("Close")).clicked() {
                     msgs.push(Message::SetQuickStartVisible(false));
                 }
             })
@@ -197,7 +199,7 @@ pub fn draw_control_help_window(
     shortcuts: &SurferShortcuts,
 ) {
     let mut open = true;
-    Window::new("🖮 Surfer controls")
+    Window::new(t!("🖮 wavAnaly controls"))
         .collapsible(true)
         .resizable(true)
         .open(&mut open)
@@ -205,7 +207,7 @@ pub fn draw_control_help_window(
             ui.vertical_centered(|ui| {
                 key_listing(ui, shortcuts);
                 ui.add_space(10.);
-                if ui.button("Close").clicked() {
+                if ui.button(t!("Close")).clicked() {
                     msgs.push(Message::SetKeyHelpVisible(false));
                 }
             });
@@ -242,72 +244,72 @@ fn key_listing(ui: &mut Ui, shortcuts: &SurferShortcuts) {
     #[cfg(not(target_arch = "wasm32"))]
     let ui_zoom_out = shortcuts.format_shortcut(ShortcutAction::UiZoomOut);
     let keys = vec![
-        ("🚀", show_command_prompt.as_str(), "Show command prompt"),
-        ("↔", "Scroll", "Pan"),
-        ("🔎", "Ctrl+Scroll", "Zoom"),
-        (icons::SAVE_FILL, &save_state_file, "Save the state"),
+        ("🚀", show_command_prompt.as_str(), t!("Show command prompt")),
+        ("↔", "Scroll", t!("Pan")),
+        ("🔎", "Ctrl+Scroll", t!("Zoom")),
+        (icons::SAVE_FILL, &save_state_file, t!("Save the state")),
         (
             icons::LAYOUT_LEFT_FILL,
             &toggle_hierarchy,
-            "Show or hide the design hierarchy",
+            t!("Show or hide the design hierarchy"),
         ),
-        (icons::MENU_FILL, &toggle_menu, "Show or hide menu"),
-        (icons::TOOLS_FILL, &toggle_toolbar, "Show or hide toolbar"),
-        (icons::ZOOM_IN_FILL, &zoom_in, "Zoom in"),
-        (icons::ZOOM_OUT_FILL, &zoom_out, "Zoom out"),
-        (icons::TARGET_FILL, &zoom_to_cursor, "Zoom in on cursor"),
+        (icons::MENU_FILL, &toggle_menu, t!("Show or hide menu")),
+        (icons::TOOLS_FILL, &toggle_toolbar, t!("Show or hide toolbar")),
+        (icons::ZOOM_IN_FILL, &zoom_in, t!("Zoom in")),
+        (icons::ZOOM_OUT_FILL, &zoom_out, t!("Zoom out")),
+        (icons::TARGET_FILL, &zoom_to_cursor, t!("Zoom in on cursor")),
         #[cfg(not(target_arch = "wasm32"))]
-        ("", &ui_zoom_in, "UI Zoom in"),
+        ("", &ui_zoom_in, t!("UI Zoom in")),
         #[cfg(not(target_arch = "wasm32"))]
-        ("", &ui_zoom_out, "UI Zoom out"),
-        ("", "k/⬆", "Scroll up"),
-        ("", "j/⬇", "Scroll down"),
-        ("", "Ctrl+k/⬆", "Move focused item up"),
-        ("", "Ctrl+j/⬇", "Move focused item down"),
-        ("", "Alt+k/⬆", "Move focus up"),
-        ("", "Alt+j/⬇", "Move focus down"),
-        ("", &selected_item_toggle, "Add focused item to selection"),
-        ("", "Ctrl+Alt+k/⬆", "Extend selection up"),
-        ("", "Ctrl+Alt+j/⬇", "Extend selection down"),
-        ("", &undo, "Undo last change"),
-        ("", &redo, "Redo last change"),
-        ("", &focus_item, "Fast focus a variable"),
-        ("", &add_marker, "Add marker at current cursor"),
-        ("", "Ctrl+0-9", "Add numbered marker"),
-        ("", "0-9", "Center view at numbered marker"),
-        ("", &divider_add, "Add divider"),
-        (icons::REWIND_START_FILL, &goto_start, "Go to start"),
-        (icons::FORWARD_END_FILL, &goto_end, "Go to end"),
-        (icons::REFRESH_LINE, &reload_waveform, "Reload waveform"),
-        (icons::SPEED_FILL, &scroll_up, "Go one page/screen right"),
-        (icons::REWIND_FILL, &scroll_down, "Go one page/screen left"),
+        ("", &ui_zoom_out, t!("UI Zoom out")),
+        ("", "k/⬆", t!("Scroll up")),
+        ("", "j/⬇", t!("Scroll down")),
+        ("", "Ctrl+k/⬆", t!("Move focused item up")),
+        ("", "Ctrl+j/⬇", t!("Move focused item down")),
+        ("", "Alt+k/⬆", t!("Move focus up")),
+        ("", "Alt+j/⬇", t!("Move focus down")),
+        ("", &selected_item_toggle, t!("Add focused item to selection")),
+        ("", "Ctrl+Alt+k/⬆", t!("Extend selection up")),
+        ("", "Ctrl+Alt+j/⬇", t!("Extend selection down")),
+        ("", &undo, t!("Undo last change")),
+        ("", &redo, t!("Redo last change")),
+        ("", &focus_item, t!("Fast focus a variable")),
+        ("", &add_marker, t!("Add marker at current cursor")),
+        ("", "Ctrl+0-9", t!("Add numbered marker")),
+        ("", "0-9", t!("Center view at numbered marker")),
+        ("", &divider_add, t!("Add divider")),
+        (icons::REWIND_START_FILL, &goto_start, t!("Go to start")),
+        (icons::FORWARD_END_FILL, &goto_end, t!("Go to end")),
+        (icons::REFRESH_LINE, &reload_waveform, t!("Reload waveform")),
+        (icons::SPEED_FILL, &scroll_up, t!("Go one page/screen right")),
+        (icons::REWIND_FILL, &scroll_down, t!("Go one page/screen left")),
         (
             icons::PLAY_FILL,
             "➡/l",
-            "Go to next transition of focused variable (changeable in config)",
+            t!("Go to next transition of focused variable (changeable in config)"),
         ),
         (
             icons::PLAY_REVERSE_FILL,
             "⬅/h",
-            "Go to previous transition of focused variable (changeable in config)",
+            t!("Go to previous transition of focused variable (changeable in config)"),
         ),
         (
             "",
             "Ctrl+➡/l",
-            "Go to next non-zero transition of focused variable",
+            t!("Go to next non-zero transition of focused variable"),
         ),
         (
             "",
             "Ctrl+⬅/h",
-            "Go to previous non-zero transition of focused variable",
+            t!("Go to previous non-zero transition of focused variable"),
         ),
         (
             icons::DELETE_BIN_2_FILL,
             &delete_selected,
-            "Delete focused item",
+            t!("Delete focused item"),
         ),
         #[cfg(not(target_arch = "wasm32"))]
-        (icons::FULLSCREEN_LINE, "F11", "Toggle full screen"),
+        (icons::FULLSCREEN_LINE, "F11", t!("Toggle full screen")),
     ];
 
     Grid::new("keys")
@@ -334,19 +336,19 @@ fn controls_listing(ui: &mut Ui, shortcuts: &SurferShortcuts) {
     let toggle_menu = shortcuts.format_shortcut(ShortcutAction::ToggleMenu);
 
     let controls = vec![
-        ("🚀", show_command_prompt.as_str(), "Show command prompt"),
-        ("↔", "Horizontal Scroll", "Pan"),
-        ("↕", "j, k, Up, Down", "Scroll down/up"),
-        ("⌖", "Ctrl+j, k, Up, Down", "Move focus down/up"),
-        ("🔃", "Alt+j, k, Up, Down", "Move focused item down/up"),
-        ("🔎", "Ctrl+Scroll", "Zoom"),
+        ("🚀", show_command_prompt.as_str(), t!("Show command prompt")),
+        ("↔", "Horizontal Scroll", t!("Pan")),
+        ("↕", "j, k, Up, Down", t!("Scroll down/up")),
+        ("⌖", "Ctrl+j, k, Up, Down", t!("Move focus down/up")),
+        ("🔃", "Alt+j, k, Up, Down", t!("Move focused item down/up")),
+        ("🔎", "Ctrl+Scroll", t!("Zoom")),
         (
             icons::LAYOUT_LEFT_2_FILL,
             &toggle_hierarchy,
-            "Show or hide the design hierarchy",
+            t!("Show or hide the design hierarchy"),
         ),
-        (icons::MENU_FILL, &toggle_menu, "Show or hide menu"),
-        (icons::TOOLS_FILL, &toggle_toolbar, "Show or hide toolbar"),
+        (icons::MENU_FILL, &toggle_menu, t!("Show or hide menu")),
+        (icons::TOOLS_FILL, &toggle_toolbar, t!("Show or hide toolbar")),
     ];
 
     Grid::new("controls")
@@ -365,14 +367,14 @@ fn controls_listing(ui: &mut Ui, shortcuts: &SurferShortcuts) {
 
 fn add_hint_text(ui: &mut Ui) {
     ui.add_space(20.);
-    ui.label(RichText::new("Hint: You can repeat keybinds by typing Alt+0-9 before them. For example, Alt+1 Alt+0 k scrolls 10 steps up."));
+    ui.label(RichText::new(t!("Hint: You can repeat keybinds by typing Alt+0-9 before them. For example, Alt+1 Alt+0 k scrolls 10 steps up.")));
 }
 
-// Display information about licenses for Surfer and used crates.
+// Display information about licenses for wavAnaly and used crates.
 pub fn draw_license_window(ctx: &Context, msgs: &mut Vec<Message>) {
     let mut open = true;
     let text = include_str!("../../LICENSE-EUPL-1.2.txt");
-    Window::new("Surfer License")
+    Window::new(t!("wavAnaly License"))
         .open(&mut open)
         .collapsible(false)
         .max_height(600.)
@@ -383,13 +385,13 @@ pub fn draw_license_window(ctx: &Context, msgs: &mut Vec<Message>) {
             });
             ui.add_space(10.);
             ui.horizontal(|ui| {
-                if ui.button("Dependency licenses").clicked() {
+                if ui.button(t!("Dependency licenses")).clicked() {
                     ctx.open_url(OpenUrl {
                         url: "https://docs.surfer-project.org/licenses.html".to_string(),
                         new_tab: true,
                     });
                 }
-                if ui.button("Close").clicked() {
+                if ui.button(t!("Close")).clicked() {
                     msgs.push(Message::SetLicenseVisible(false));
                 }
             });

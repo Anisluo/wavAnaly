@@ -7,13 +7,17 @@ use crate::{SystemState, message::Message, wave_source::LoadOptions};
 fn draw_file_info_tooltip(ui: &mut egui::Ui, file_info: &SurverFileInfo, is_loadable: bool) {
     ui.set_max_width(ui.spacing().tooltip_width);
     if is_loadable {
-        ui.label(format!("Size: {} bytes", file_info.bytes));
+        ui.label(format!("{}: {} {}", t!("Size"), file_info.bytes, t!("bytes")));
         ui.label(format!(
-            "Last modified: {}",
+            "{}: {}",
+            t!("Last modified"),
             file_info.modification_time_string()
         ));
     } else {
-        ui.colored_label(Color32::RED, "File cannot be loaded. See logs for details.");
+        ui.colored_label(
+            Color32::RED,
+            t!("File cannot be loaded. See logs for details."),
+        );
     }
 }
 
@@ -23,7 +27,7 @@ impl SystemState {
         let mut load_options = *self.surver_load_options.borrow();
         let mut should_load = false;
 
-        Window::new("Select wave file")
+        Window::new(t!("Select wave file"))
             .resizable(true)
             .open(&mut open)
             .show(ctx, |ui| {
@@ -80,29 +84,29 @@ impl SystemState {
                     ui.radio_value(
                         &mut load_options,
                         LoadOptions::Clear,
-                        "Clean load (do not keep any variables)",
+                        t!("Clean load (do not keep any variables)"),
                     );
                     ui.radio_value(
                         &mut load_options,
                         LoadOptions::KeepAvailable,
-                        "Reload and keep available variables",
+                        t!("Reload and keep available variables"),
                     );
                     ui.radio_value(
                         &mut load_options,
                         LoadOptions::KeepAll,
-                        "Reload and keep all variables",
+                        t!("Reload and keep all variables"),
                     );
                 }
 
                 ui.separator();
                 ui.horizontal(|ui| {
-                    if ui.button("Cancel").clicked() {
+                    if ui.button(t!("Cancel")).clicked() {
                         msgs.push(Message::SetSurverFileWindowVisible(false));
                     }
 
                     // Disable Select button when nothing is selected
                     ui.add_enabled_ui(self.surver_selected_file.borrow().is_some(), |ui| {
-                        if ui.button("Select").clicked() {
+                        if ui.button(t!("Select")).clicked() {
                             should_load = true;
                         }
                     });

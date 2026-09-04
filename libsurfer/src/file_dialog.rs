@@ -196,7 +196,7 @@ impl SystemState {
 
         let message = move |file: Utf8PathBuf| vec![Message::LoadFile(file, load_options)];
 
-        self.file_dialog_open("Open waveform file", &WAVEFORM_FILE_FILTER, message);
+        self.file_dialog_open(t!("Open waveform file"), &WAVEFORM_FILE_FILTER, message);
     }
 
     #[cfg(all(target_arch = "wasm32", not(feature = "vscode")))]
@@ -205,7 +205,7 @@ impl SystemState {
 
         let message = move |file: Vec<u8>| vec![Message::LoadFromData(file, load_options)];
 
-        self.file_dialog_open("Open waveform file", &WAVEFORM_FILE_FILTER, message);
+        self.file_dialog_open(t!("Open waveform file"), &WAVEFORM_FILE_FILTER, message);
     }
 
     #[cfg(all(target_arch = "wasm32", feature = "vscode"))]
@@ -217,13 +217,13 @@ impl SystemState {
     pub(crate) fn open_command_file_dialog(&mut self) {
         let message = move |file: Utf8PathBuf| vec![Message::LoadCommandFile(file)];
 
-        self.file_dialog_open("Open command file", &COMMAND_FILE_FILTER, message);
+        self.file_dialog_open(t!("Open command file"), &COMMAND_FILE_FILTER, message);
     }
 
     #[cfg(all(target_arch = "wasm32", not(feature = "vscode")))]
     pub(crate) fn open_command_file_dialog(&mut self) {
         self.file_dialog_open(
-            "Open command file",
+            t!("Open command file"),
             &COMMAND_FILE_FILTER,
             |file: Vec<u8>| vec![Message::LoadCommandFromData(file)],
         );
@@ -231,7 +231,7 @@ impl SystemState {
 
     #[cfg(feature = "python")]
     pub(crate) fn open_python_file_dialog(&mut self) {
-        self.file_dialog_open("Open Python translator file", &PYTHON_FILE_FILTER, |file| {
+        self.file_dialog_open(t!("Open Python translator file"), &PYTHON_FILE_FILTER, |file| {
             vec![Message::LoadPythonTranslator(file)]
         });
     }

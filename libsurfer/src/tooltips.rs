@@ -28,16 +28,19 @@ fn find_transaction<'a>(
 pub(crate) fn variable_tooltip_text(meta: Option<&VariableMeta>, variable: &VariableRef) -> String {
     if let Some(meta) = meta {
         format!(
-            "{}\nNum bits: {}\nType: {}\nDirection: {}",
+            "{}\n{}: {}\n{}: {}\n{}: {}",
             variable.full_path_string(),
+            t!("Num bits"),
             meta.num_bits
-                .map_or_else(|| "unknown".to_string(), |bits| bits.to_string()),
+                .map_or_else(|| t!("unknown").to_string(), |bits| bits.to_string()),
+            t!("Type"),
             meta.variable_type_name
                 .clone()
                 .or_else(|| meta.variable_type.map(|t| t.to_string()))
-                .unwrap_or_else(|| "unknown".to_string()),
+                .unwrap_or_else(|| t!("unknown").to_string()),
+            t!("Direction"),
             meta.direction
-                .map_or_else(|| "unknown".to_string(), |direction| format!("{direction}"))
+                .map_or_else(|| t!("unknown").to_string(), |direction| format!("{direction}"))
         )
     } else {
         variable.full_path_string()
@@ -58,7 +61,7 @@ pub(crate) fn scope_tooltip_text(
                     .query_variable(param, &BigUint::ZERO)
                     .ok()
                     .and_then(|o| o.and_then(|q| q.current.map(|v| format!("{}", v.1))))
-                    .unwrap_or_else(|| "Undefined".to_string());
+                    .unwrap_or_else(|| t!("Undefined").to_string());
                 parts.push(format!("{}: {}", param.name, value));
             }
         }
@@ -83,7 +86,7 @@ pub(crate) fn handle_transaction_tooltip(
                 ui.set_max_width(ui.spacing().tooltip_width);
                 ui.add(egui::Label::new(transaction_tooltip_text(waves, tx)));
             } else {
-                ui.label("Transaction unavailable");
+                ui.label(t!("Transaction unavailable"));
             }
         })
         .on_hover_ui(|ui| {
@@ -94,7 +97,7 @@ pub(crate) fn handle_transaction_tooltip(
             if let Some(tx) = find_transaction(waves, gen_ref, tx_ref) {
                 transaction_tooltip_table(ui, tx);
             } else {
-                ui.label("Transaction details unavailable");
+                ui.label(t!("Transaction details unavailable"));
             }
         })
 }
@@ -107,17 +110,18 @@ fn transaction_tooltip_text(waves: &WaveData, tx: &Transaction) -> String {
         .unwrap_or_default();
 
     format!(
-        "tx#{}: {}{} - {}{}\nType: {}",
+        "tx#{}: {}{} - {}{}\n{}: {}",
         tx.event.tx_id,
         tx.event.start_time,
         time_scale,
         tx.event.end_time,
         time_scale,
+        t!("Type"),
         waves
             .inner
             .as_transactions()
             .and_then(|t| t.get_generator(tx.get_gen_id()))
-            .map_or_else(|| "unknown".to_string(), |g| g.name.clone()),
+            .map_or_else(|| t!("unknown").to_string(), |g| g.name.clone()),
     )
 }
 
@@ -127,10 +131,10 @@ fn transaction_tooltip_table(ui: &mut Ui, tx: &Transaction) {
         .column(Column::exact(80.))
         .header(20.0, |mut header| {
             header.col(|ui| {
-                ui.heading("Attribute");
+                ui.heading(t!("Attribute"));
             });
             header.col(|ui| {
-                ui.heading("Value");
+                ui.heading(t!("Value"));
             });
         })
         .body(|body| {

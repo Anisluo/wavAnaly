@@ -346,12 +346,15 @@ impl Annotatable for ArrowAnnotation {
     fn get_time_info(&self, time_formatter: &TimeFormatter) -> String {
         match self.head_mode {
             ArrowHeadMode::End => format!(
-                "Pointing at {}",
+                "{} {}",
+                t!("Pointing at"),
                 time_formatter.format(&self.to.time.clone())
             ),
             ArrowHeadMode::Double => format!(
-                "from: {}, to: {}",
+                "{} {}, {} {}",
+                t!("from:"),
                 time_formatter.format(&self.from.time.clone()),
+                t!("to:"),
                 time_formatter.format(&self.to.time.clone())
             ),
         }

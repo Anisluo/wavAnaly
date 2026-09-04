@@ -25,26 +25,6 @@ const SUBHEADER_SIZE: f32 = 15.;
 // Root stream name
 const TRANSACTION_ROOT_NAME: &str = "tr";
 
-// Header / section titles
-const FOCUSED_TX_DETAILS_HDR: &str = "Focused Transaction Details";
-const PROPERTIES_HDR: &str = "Properties";
-const ATTRIBUTES_SECTION_TITLE: &str = "Attributes";
-const INCOMING_RELATIONS_TITLE: &str = "Incoming Relations";
-const OUTGOING_RELATIONS_TITLE: &str = "Outgoing Relations";
-
-// Column / field labels
-const TX_ID_LABEL: &str = "Transaction ID";
-const TX_TYPE_LABEL: &str = "Type";
-const START_TIME_LABEL: &str = "Start Time";
-const END_TIME_LABEL: &str = "End Time";
-const SOURCE_TX_LABEL: &str = "Source Tx";
-const SINK_TX_LABEL: &str = "Sink Tx";
-const ATTR_NAME_LABEL: &str = "Name";
-const ATTR_VALUE_LABEL: &str = "Value";
-
-// Information label
-const STREAM_NOT_FOUND_LABEL: &str = "Stream not found";
-
 impl SystemState {
     pub fn draw_transaction_detail_panel(
         &self,
@@ -197,23 +177,23 @@ fn draw_focused_transaction_details(
     ui.with_layout(
         Layout::top_down(Align::LEFT).with_cross_justify(true),
         |ui| {
-            ui.label(FOCUSED_TX_DETAILS_HDR);
+            ui.label(t!("Focused Transaction Details"));
             let column_width = ui.available_width() * 0.5;
             TableBuilder::new(ui)
                 .column(Column::exact(column_width))
                 .column(Column::auto())
                 .header(20.0, |mut header| {
                     header.col(|ui| {
-                        ui.heading(PROPERTIES_HDR);
+                        ui.heading(t!("Properties"));
                     });
                 })
                 .body(|mut body| {
                     table_row(
                         &mut body,
-                        TX_ID_LABEL,
+                        t!("Transaction ID"),
                         &focused_transaction.get_tx_id().to_string(),
                     );
-                    table_row(&mut body, TX_TYPE_LABEL, {
+                    table_row(&mut body, t!("Type"), {
                         let generator = transactions
                             .get_generator(focused_transaction.get_gen_id())
                             .unwrap();
@@ -221,24 +201,24 @@ fn draw_focused_transaction_details(
                     });
                     table_row(
                         &mut body,
-                        START_TIME_LABEL,
+                        t!("Start Time"),
                         &focused_transaction.get_start_time().to_string(),
                     );
                     table_row(
                         &mut body,
-                        END_TIME_LABEL,
+                        t!("End Time"),
                         &focused_transaction.get_end_time().to_string(),
                     );
-                    section_header(&mut body, ATTRIBUTES_SECTION_TITLE);
-                    subheader(&mut body, ATTR_NAME_LABEL, ATTR_VALUE_LABEL);
+                    section_header(&mut body, t!("Attributes"));
+                    subheader(&mut body, t!("Name"), t!("Value"));
 
                     for attr in &focused_transaction.attributes {
                         table_row(&mut body, &attr.name, &attr.value().clone());
                     }
 
                     if !focused_transaction.inc_relations.is_empty() {
-                        section_header(&mut body, INCOMING_RELATIONS_TITLE);
-                        subheader(&mut body, SOURCE_TX_LABEL, SINK_TX_LABEL);
+                        section_header(&mut body, t!("Incoming Relations"));
+                        subheader(&mut body, t!("Source Tx"), t!("Sink Tx"));
 
                         for rel in &focused_transaction.inc_relations {
                             table_row(
@@ -250,8 +230,8 @@ fn draw_focused_transaction_details(
                     }
 
                     if !focused_transaction.out_relations.is_empty() {
-                        section_header(&mut body, OUTGOING_RELATIONS_TITLE);
-                        subheader(&mut body, SOURCE_TX_LABEL, SINK_TX_LABEL);
+                        section_header(&mut body, t!("Outgoing Relations"));
+                        subheader(&mut body, t!("Source Tx"), t!("Sink Tx"));
 
                         for rel in &focused_transaction.out_relations {
                             table_row(
@@ -392,7 +372,7 @@ fn draw_transaction_stream_variables(
             );
         }
     } else {
-        ui.label(STREAM_NOT_FOUND_LABEL);
+        ui.label(t!("Stream not found"));
         tracing::warn!(
             "Stream ID {} not found in transaction container",
             stream_ref.stream_id

@@ -45,9 +45,9 @@ impl WaveData {
         });
 
         ui.vertical_centered(|ui| {
-            ui.heading("Annotation List");
+            ui.heading(t!("Annotation List"));
             if self.annotations.is_empty() {
-                ui.label("Your annotations will be displayed here.");
+                ui.label(t!("Your annotations will be displayed here."));
             }
         });
 
@@ -57,7 +57,7 @@ impl WaveData {
         // Create Group UI (Using egui Temp Memory)
         ui.horizontal(|ui| {
             ui.add_space(DEFAULT_SPACE * 2.);
-            ui.label(egui::RichText::new("Manage Groups").small().strong());
+            ui.label(egui::RichText::new(t!("Manage Groups")).small().strong());
         });
         ui.horizontal(|ui| {
             ui.add_space(DEFAULT_SPACE * 2.);
@@ -66,7 +66,7 @@ impl WaveData {
 
             let text_edit_res = ui.add(
                 egui::TextEdit::singleline(&mut buffer)
-                    .hint_text("Type group name...")
+                    .hint_text(t!("Type group name..."))
                     .desired_width(ui.available_width() - 160.0),
             );
 
@@ -100,7 +100,7 @@ impl WaveData {
             // create group when user press plus button
             if ui
                 .button(icons::ADD_LINE)
-                .on_hover_text("Create Group")
+                .on_hover_text(t!("Create Group"))
                 .clicked()
                 && !buffer.is_empty()
             {
@@ -111,7 +111,7 @@ impl WaveData {
             // delete group when user press plus button
             if ui
                 .button(icons::DELETE_BIN_LINE)
-                .on_hover_text("Delete Group")
+                .on_hover_text(t!("Delete Group"))
                 .clicked()
                 && !buffer.is_empty()
             {
@@ -167,12 +167,12 @@ impl WaveData {
 
                 let (delete_tooltip, delete_message) = if group.annotations.is_empty() {
                     (
-                        "Delete this group",
+                        t!("Delete this group"),
                         Message::DeleteAnnotationGroup(group.name.clone()),
                     )
                 } else {
                     (
-                        "Delete all annotations in this group",
+                        t!("Delete all annotations in this group"),
                         Message::DeleteAllAnnotationInGroup(group.name.clone()),
                     )
                 };
@@ -188,7 +188,7 @@ impl WaveData {
                     }
                     if ui
                         .button(group_icon)
-                        .on_hover_text("Toggle visibility for all in this group")
+                        .on_hover_text(t!("Toggle visibility for all in this group"))
                         .clicked()
                     {
                         msgs.push(Message::SetGroupVisibility(group.clone(), !any_visible));
@@ -197,7 +197,7 @@ impl WaveData {
                     if group.annotations.len() > 1
                         && ui
                             .button(icons::SKIP_FORWARD_LINE)
-                            .on_hover_text("Cycle through group")
+                            .on_hover_text(t!("Cycle through group"))
                             .clicked()
                     {
                         msgs.push(Message::GoToAnnotationPosition(
@@ -214,7 +214,7 @@ impl WaveData {
             })
             .body(|ui| {
                 if group.annotations.is_empty() {
-                    ui.weak("  No items");
+                    ui.weak(format!("  {}", t!("No items")));
                 }
 
                 for id in &group.annotations {
@@ -285,7 +285,7 @@ impl WaveData {
                                         )
                                     });
                                 }
-                                response.on_hover_text("Click to rename");
+                                response.on_hover_text(t!("Click to rename"));
                             }
 
                             let show_comment_icon = if annotation.show_comments() {
@@ -296,7 +296,7 @@ impl WaveData {
 
                             if ui
                                 .button(show_comment_icon)
-                                .on_hover_text("Show comments")
+                                .on_hover_text(t!("Show comments"))
                                 .clicked()
                             {
                                 msgs.push(Message::ToggleAnnotationListShowComments(*id));
@@ -324,13 +324,13 @@ impl WaveData {
                                 }
                             })
                             .response
-                            .on_hover_text("Change Group");
+                            .on_hover_text(t!("Change Group"));
 
                             // Buttons on the right
                             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                 if ui
                                     .button(icons::DELETE_BIN_LINE)
-                                    .on_hover_text("Delete annotation")
+                                    .on_hover_text(t!("Delete annotation"))
                                     .clicked()
                                 {
                                     msgs.push(Message::RemoveAnnotation(*id));
@@ -343,7 +343,7 @@ impl WaveData {
                                 };
                                 if ui
                                     .button(vis_icon)
-                                    .on_hover_text("Toggle visibility")
+                                    .on_hover_text(t!("Toggle visibility"))
                                     .clicked()
                                 {
                                     msgs.push(Message::ToggleAnnotationVisiblility(*id));
@@ -360,7 +360,7 @@ impl WaveData {
 
                                     if ui
                                         .button(chat_icon)
-                                        .on_hover_text("Toggle comment visibility")
+                                        .on_hover_text(t!("Toggle comment visibility"))
                                         .clicked()
                                     {
                                         msgs.push(Message::ToggleCommentVisibility(*id));
@@ -368,7 +368,7 @@ impl WaveData {
                                 }
                                 if ui
                                     .button(icons::SEARCH_LINE)
-                                    .on_hover_text("Go to annotation")
+                                    .on_hover_text(t!("Go to annotation"))
                                     .clicked()
                                 {
                                     msgs.push(Message::GoToAnnotationPosition(
@@ -414,7 +414,7 @@ impl WaveData {
                                             egui::Button::new(icons::DELETE_BIN_LINE),
                                         );
 
-                                        if response.on_hover_text("Delete message").clicked() {
+                                        if response.on_hover_text(t!("Delete message")).clicked() {
                                             msgs.push(Message::RemoveCommentMessage(
                                                 annotation.get_id(),
                                                 c.id,

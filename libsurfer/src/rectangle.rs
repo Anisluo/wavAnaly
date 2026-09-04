@@ -308,8 +308,10 @@ impl Annotatable for RectAnnotation {
 
     fn get_time_info(&self, time_formatter: &TimeFormatter) -> String {
         format!(
-            "from: {}, to: {}",
+            "{} {}, {} {}",
+            t!("from:"),
             time_formatter.format(&self.from.time),
+            t!("to:"),
             time_formatter.format(&self.to.time)
         )
     }

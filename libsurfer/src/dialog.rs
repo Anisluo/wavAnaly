@@ -21,24 +21,24 @@ pub(crate) fn draw_open_sibling_state_file_dialog(
     msgs: &mut Vec<Message>,
 ) {
     let mut do_not_show_again = dialog.do_not_show_again;
-    egui::Window::new("State file detected")
+    egui::Window::new(t!("State file detected"))
             .auto_sized()
             .collapsible(false)
             .fixed_pos(ctx.content_rect().center())
             .show(ctx, |ui| {
-                let label = ui.label(RichText::new("A state file was detected in the same directory as the loaded file.\nLoad state?").heading());
+                let label = ui.label(RichText::new(t!("A state file was detected in the same directory as the loaded file.\nLoad state?")).heading());
                 ui.set_width(label.rect.width());
                 ui.add_space(5.0);
                 ui.checkbox(
                     &mut do_not_show_again,
-                    "Remember my decision for this session",
+                    t!("Remember my decision for this session"),
                 );
                 ui.add_space(14.0);
                 ui.with_layout(Layout::right_to_left(Align::TOP), |ui| {
                     // Sets the style when focused
                     ui.style_mut().visuals.widgets.active.weak_bg_fill = Color32::BLUE;
-                    let load_button = ui.button("Load");
-                    let dont_load_button = ui.button("Don't load");
+                    let load_button = ui.button(t!("Load"));
+                    let dont_load_button = ui.button(t!("Don't load"));
                     ctx.memory_mut(|mem| {
                         if !matches!(mem.focused(), Some(id) if id == load_button.id || id == dont_load_button.id)
                         {
@@ -73,24 +73,24 @@ pub(crate) fn draw_reload_waveform_dialog(
     msgs: &mut Vec<Message>,
 ) {
     let mut do_not_show_again = dialog.do_not_show_again;
-    egui::Window::new("File Change")
+    egui::Window::new(t!("File Change"))
         .auto_sized()
         .collapsible(false)
         .fixed_pos(ctx.content_rect().center())
         .show(ctx, |ui| {
-            let label = ui.label(RichText::new("File on disk has changed. Reload?").heading());
+            let label = ui.label(RichText::new(t!("File on disk has changed. Reload?")).heading());
             ui.set_width(label.rect.width());
             ui.add_space(5.0);
             ui.checkbox(
                 &mut do_not_show_again,
-                "Remember my decision for this session",
+                t!("Remember my decision for this session"),
             );
             ui.add_space(14.0);
             ui.with_layout(Layout::right_to_left(Align::TOP), |ui| {
                 // Sets the style when focused
                 ui.style_mut().visuals.widgets.active.weak_bg_fill = Color32::BLUE;
-                let reload_button = ui.button("Reload");
-                let leave_button = ui.button("Leave");
+                let reload_button = ui.button(t!("Reload"));
+                let leave_button = ui.button(t!("Leave"));
                 ctx.memory_mut(|mem| {
                     if !matches!(mem.focused(), Some(id) if id == reload_button.id || id == leave_button.id)
                     {

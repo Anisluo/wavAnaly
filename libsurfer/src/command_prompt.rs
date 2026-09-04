@@ -38,7 +38,7 @@ pub fn show_command_prompt(
     window_size: Option<Vec2>,
     msgs: &mut Vec<Message>,
 ) {
-    egui::Window::new("Commands")
+    egui::Window::new(t!("Commands"))
         .anchor(Align2::CENTER_TOP, Vec2::ZERO)
         .title_bar(false)
         .min_width(window_size.map_or(200., |s| s.x * 0.3))
@@ -204,7 +204,7 @@ pub fn show_command_prompt(
                 if !expanded.is_empty() {
                     ui.horizontal(|ui| {
                         let label = ui.label(
-                            RichText::new("Expansion").color(
+                            RichText::new(t!("Expansion")).color(
                                 state
                                     .user
                                     .config
@@ -257,7 +257,7 @@ pub fn show_command_prompt(
                             if idx == 0 && previous_cmds_len != 0 && input.is_empty() {
                                 ui.horizontal(|ui| {
                                     let label = ui.label(
-                                        RichText::new("Recently used").color(
+                                        RichText::new(t!("Recently used")).color(
                                             state
                                                 .user
                                                 .config
@@ -279,7 +279,7 @@ pub fn show_command_prompt(
                             {
                                 ui.horizontal(|ui| {
                                     let label = ui.label(
-                                        RichText::new("Suggestions").color(
+                                        RichText::new(t!("Suggestions")).color(
                                             state
                                                 .user
                                                 .config

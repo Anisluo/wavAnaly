@@ -68,7 +68,7 @@ where
 impl SystemState {
     pub fn draw_log_window(&self, ctx: &egui::Context, msgs: &mut Vec<Message>) {
         let mut open = true;
-        egui::Window::new("Logs")
+        egui::Window::new(t!("Logs"))
             .open(&mut open)
             .collapsible(true)
             .resizable(true)
@@ -76,11 +76,11 @@ impl SystemState {
                 {
                     let mut filters = LOG_FILTER.lock().unwrap();
                     ui.horizontal(|ui| {
-                        ui.checkbox(&mut filters.0, "Error");
-                        ui.checkbox(&mut filters.1, "Warn");
-                        ui.checkbox(&mut filters.2, "Info");
-                        ui.checkbox(&mut filters.3, "Debug");
-                        ui.checkbox(&mut filters.4, "Trace");
+                        ui.checkbox(&mut filters.0, t!("Error"));
+                        ui.checkbox(&mut filters.1, t!("Warn"));
+                        ui.checkbox(&mut filters.2, t!("Info"));
+                        ui.checkbox(&mut filters.3, t!("Debug"));
+                        ui.checkbox(&mut filters.4, t!("Trace"));
                     });
                 }
 
@@ -95,13 +95,13 @@ impl SystemState {
                         .stick_to_bottom(true)
                         .header(20.0, |mut header| {
                             header.col(|ui| {
-                                ui.heading("Level");
+                                ui.heading(t!("Level"));
                             });
                             header.col(|ui| {
-                                ui.heading("Source");
+                                ui.heading(t!("Source"));
                             });
                             header.col(|ui| {
-                                ui.heading("Message");
+                                ui.heading(t!("Message"));
                             });
                         })
                         .body(|body| {

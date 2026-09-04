@@ -236,7 +236,7 @@ impl SystemState {
                 (
                     CURSOR_MARKER_IDX,
                     cursor,
-                    WidgetText::RichText(RichText::new("Primary").into()),
+                    WidgetText::RichText(RichText::new(t!("Primary")).into()),
                 )
             })
             .chain(
@@ -259,7 +259,7 @@ impl SystemState {
             )
             .collect();
 
-        Window::new("Markers")
+        Window::new(t!("Markers"))
             .collapsible(true)
             .resizable(true)
             .open(&mut open)
@@ -316,7 +316,7 @@ impl SystemState {
                             });
                         });
                     ui.add_space(15.);
-                    if ui.button("Close").clicked() {
+                    if ui.button(t!("Close")).clicked() {
                         msgs.push(Message::SetCursorWindowVisible(false));
                     }
                 });

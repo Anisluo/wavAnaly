@@ -133,7 +133,7 @@ impl egui::Widget for &mut Comment {
                         egui::TextEdit::multiline(&mut self.new_text)
                             .desired_rows(1)
                             .desired_width(self.size.x)
-                            .hint_text("Comment..."),
+                            .hint_text(t!("Comment...")),
                     );
 
                     // Store rect to prevent dragging the whole widget while typing
