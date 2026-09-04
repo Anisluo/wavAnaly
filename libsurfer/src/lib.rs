@@ -77,6 +77,7 @@ pub mod wasm_panic;
 pub mod wave_container;
 pub mod wave_data;
 pub mod wave_source;
+pub mod wavedrom;
 pub mod wcp;
 pub mod wellen;
 
@@ -1882,6 +1883,8 @@ impl SystemState {
             Message::SaveStateFile(path) => self.save_state_file(path),
             #[cfg(not(target_arch = "wasm32"))]
             Message::ExportSignalsToFst(path) => self.export_signals_to_fst(path),
+            #[cfg(not(target_arch = "wasm32"))]
+            Message::ExportWavedromVcd(path) => self.export_wavedrom_vcd(path),
             Message::LoadStateFromData(bytes) => self.load_state_from_bytes(&bytes),
             Message::LoadStateFile(path) => self.load_state_file(path),
             Message::LoadState(state, path) => self.load_state(state, path),

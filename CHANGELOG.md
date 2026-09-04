@@ -9,11 +9,17 @@
 * Protocol decoders producing virtual string signals (`libsurfer/src/decoders/`): `decode_i2c <scl> <sda> [name]`.
 * Simplified Chinese UI (`libsurfer/src/i18n/`), `language` config key, `WAVANALY_LANG` env override.
 * System CJK font is loaded at start-up as a fallback font (`WAVANALY_CJK_FONT` to override).
+* WaveDrom script import (`.json`/`.json5`/`.wavedrom`, JSON5-tolerant) rendered as a waveform; export the converted VCD via File menu or `wavedrom_export_vcd <path>`.
+* New application icon and Windows executable icon (`tools/make_icon.py`).
 
 #### Changed
 
 * Application, binary and config directory renamed to wavAnaly / `wavanaly` / `io.wavanaly`.
 * Default window 1600x900 at (120, 60) instead of 1920x1080 at (0, 0).
+
+#### Removed
+
+* The Help → License information window. The licence texts remain in the repository (`LICENSE-EUPL-1.2.txt`, `NOTICE.md`).
 
 ---
 

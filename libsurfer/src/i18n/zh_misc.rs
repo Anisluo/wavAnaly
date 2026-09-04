@@ -1,6 +1,8 @@
 //! 中文词典: zh_misc
 
 pub const ENTRIES: &[(&str, &str)] = &[
+    ("Export WaveDrom as VCD...", "导出 WaveDrom 为 VCD..."),
+    ("Export VCD", "导出 VCD"),
     // displayed_item.rs
     ("Marker", "标记"),
     ("Time", "时间"),

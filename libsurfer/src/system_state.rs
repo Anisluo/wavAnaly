@@ -80,6 +80,8 @@ pub struct SystemState {
     pub(crate) gesture_start_time: Option<BigInt>,
     /// Decode requests waiting for their input signals to finish loading
     pub(crate) pending_decodes: Vec<Message>,
+    /// 当前波形若来自 WaveDrom 脚本, 这里保存转换出的 VCD 文本, 供导出
+    pub(crate) wavedrom_vcd: Option<String>,
 
     pub(crate) measure_start_location: Option<Pos2>,
 
@@ -175,6 +177,7 @@ impl SystemState {
             gesture_start_location: None,
             gesture_start_time: None,
             pending_decodes: Vec::new(),
+            wavedrom_vcd: None,
 
             measure_start_location: None,
             batch_messages: VecDeque::new(),

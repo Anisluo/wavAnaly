@@ -167,6 +167,14 @@ impl SystemState {
             )
             .enabled(waves_loaded)
             .add_closing_menu(msgs, ui);
+            #[cfg(not(target_arch = "wasm32"))]
+            if self.wavedrom_vcd.is_some() {
+                b(
+                    t!("Export WaveDrom as VCD..."),
+                    Message::ExportWavedromVcd(None),
+                )
+                .add_closing_menu(msgs, ui);
+            }
             b(
                 t!("Open URL..."),
                 Message::SetUrlEntryVisible(
@@ -577,12 +585,6 @@ impl SystemState {
             ui.separator();
             b(t!("Show logs"), Message::SetLogsVisible(true)).add_closing_menu(msgs, ui);
 
-            ui.separator();
-            b(
-                t!("License information"),
-                Message::SetLicenseVisible(true),
-            )
-            .add_closing_menu(msgs, ui);
             ui.separator();
             b(t!("About"), Message::SetAboutVisible(true)).add_closing_menu(msgs, ui);
         });

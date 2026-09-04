@@ -332,6 +332,9 @@ pub enum Message {
     #[cfg(feature = "python")]
     ReloadPythonPlugin,
     SaveStateFile(Option<Utf8PathBuf>),
+    /// 把当前由 WaveDrom 脚本转换来的波形写成 .vcd 文件 (None = 弹出保存对话框)
+    #[cfg(not(target_arch = "wasm32"))]
+    ExportWavedromVcd(Option<Utf8PathBuf>),
     /// Export the currently displayed variables (and only the hierarchy needed for them) to an FST file.
     #[cfg(not(target_arch = "wasm32"))]
     ExportSignalsToFst(Option<Utf8PathBuf>),

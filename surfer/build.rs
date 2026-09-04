@@ -12,5 +12,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .add_instructions(&build)?
         .add_instructions(&git)?
         .emit()?;
+    // Windows 可执行文件图标
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
+        println!("cargo:rerun-if-changed=assets/wavanaly.ico");
+        winresource::WindowsResource::new()
+            .set_icon("assets/wavanaly.ico")
+            .compile()?;
+    }
     Ok(())
 }

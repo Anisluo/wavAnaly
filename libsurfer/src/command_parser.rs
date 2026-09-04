@@ -31,7 +31,7 @@ type RestCommand = Box<dyn Fn(&str) -> Option<Command<Message>>>;
 
 /// Match str with wave file extensions, currently: vcd, fst, ghw
 fn is_wave_file_extension(ext: &str) -> bool {
-    matches!(ext, "vcd" | "fst" | "ghw")
+    matches!(ext, "vcd" | "fst" | "ghw" | "json" | "json5" | "wavedrom")
 }
 
 /// Match str with command file extensions, currently: sucl
@@ -284,6 +284,8 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
             "switch_file",
             "variable_add",
             "decode_i2c",
+            #[cfg(not(target_arch = "wasm32"))]
+            "wavedrom_export_vcd",
             "generator_add",
             "item_focus",
             "item_set_color",
@@ -741,6 +743,16 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                         )
                     }
                 }
+                // wavedrom_export_vcd <path>
+                #[cfg(not(target_arch = "wasm32"))]
+                "wavedrom_export_vcd" => single_word(
+                    vec![],
+                    Box::new(|path| {
+                        Some(Command::Terminal(Message::ExportWavedromVcd(Some(
+                            camino::Utf8PathBuf::from(path),
+                        ))))
+                    }),
+                ),
                 // decode_i2c <scl> <sda> [name]
                 "decode_i2c" => {
                     let variables = variables.clone();

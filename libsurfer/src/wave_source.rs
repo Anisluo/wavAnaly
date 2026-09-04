@@ -270,6 +270,16 @@ impl SystemState {
                 TRANSACTIONS_FILE_EXTENSION => {
                     self.load_transactions_from_file(filename, load_options)
                 }
+                #[cfg(not(target_arch = "wasm32"))]
+                e if crate::wavedrom::is_wavedrom_extension(e) => {
+                    info!("Loading a WaveDrom script: {filename}");
+                    let text = std::fs::read_to_string(&filename)
+                        .wrap_err_with(|| format!("Failed to read {filename}"))?;
+                    let vcd = crate::wavedrom::to_vcd(&text)?;
+                    self.wavedrom_vcd = Some(vcd.clone());
+                    self.load_wave_from_bytes(WaveSource::File(filename), vcd.into_bytes(), load_options);
+                    Ok(())
+                }
                 _ => self.load_wave_from_file(filename, load_options),
             },
             _ => self.load_wave_from_file(filename, load_options),
@@ -282,7 +292,15 @@ impl SystemState {
         bytes: Vec<u8>,
         load_options: LoadOptions,
     ) {
-        if parse::is_ftr(&mut Cursor::new(&bytes)).is_ok_and(|is_ftr| is_ftr) {
+        if crate::wavedrom::looks_like_wavedrom(&bytes) {
+            match crate::wavedrom::to_vcd(&String::from_utf8_lossy(&bytes)) {
+                Ok(vcd) => {
+                    self.wavedrom_vcd = Some(vcd.clone());
+                    self.load_wave_from_bytes(source, vcd.into_bytes(), load_options);
+                }
+                Err(e) => error!("WaveDrom 转换失败: {e:#}"),
+            }
+        } else if parse::is_ftr(&mut Cursor::new(&bytes)).is_ok_and(|is_ftr| is_ftr) {
             self.load_transactions_from_bytes(source, bytes, load_options);
         } else {
             self.load_wave_from_bytes(source, bytes, load_options);
@@ -295,6 +313,7 @@ impl SystemState {
         load_options: LoadOptions,
     ) -> Result<()> {
         info!("Loading a waveform file: {filename}");
+        self.wavedrom_vcd = None;
         let start = web_time::Instant::now();
         let source = WaveSource::File(filename.clone());
         let source_copy = source.clone();

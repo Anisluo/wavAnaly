@@ -13,6 +13,9 @@ VCD / FST / GHW 波形放在同一根时间轴上，并直接读出总线上传�
   - `decode_i2c <scl> <sda> [名字]` — I²C：S / Sr / P、7 位地址 + 读写位、数据字节、ACK / NACK。
   - 规划中：UART、SPI、CAN、AHB-Lite / APB、单总线。
 - **中文界面**：默认中文，`language = "en"` 或环境变量 `WAVANALY_LANG=en` 切回英文。
+- **WaveDrom 脚本导入**：直接打开 `.json` / `.json5` / `.wavedrom` 文件（支持不带引号的键、单引号、注释、尾逗号），
+  按 WaveDrom 语法生成波形显示；菜单 文件 → 导出 WaveDrom 为 VCD，或命令 `wavedrom_export_vcd <路径>`。
+  扩展字段 `config.period_ns` 指定一个 WaveDrom 周期等于多少纳秒（默认 10）。示例见 `docs/timing/as5600_i2c.wavedrom.json`。
 
 ## 构建
 

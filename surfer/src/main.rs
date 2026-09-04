@@ -216,7 +216,7 @@ mod main_impl {
         };
 
         // Load icon using png crate
-        let icon_bytes = include_bytes!("../assets/com.gitlab.surferproject.surfer.png");
+        let icon_bytes = include_bytes!("../assets/wavanaly.png");
         let decoder = png::Decoder::new(std::io::Cursor::new(&icon_bytes[..]));
         let mut reader = decoder.read_info().expect("Failed to read PNG info");
         let mut icon_data = vec![

@@ -1,0 +1,16 @@
+// AS5600 读 RAW_ANGLE 的 I2C 时序 (WaveDrom 语法, JSON5 风格, wavAnaly 可直接打开)
+// config.period_ns 是 wavAnaly 扩展: 一个 WaveDrom 周期对应的纳秒数。
+// 这里 1 格 = 2.5 µs = 400 kHz 的一个位周期。SCL 用 'p' 表示每格一个时钟脉冲。
+{
+  signal: [
+    { name: 'SCL', wave: '1.p........p........p........1.' },
+    { name: 'SDA', wave: '10011011000000011000101101101101' },
+    {},
+    { name: 'phase',  wave: 'x3=.......4=.......45=.......46x',
+      data: ['S', 'ADDR 0x36 W', 'ACK', 'REG 0x0C', 'ACK', 'Sr', 'ADDR 0x36 R', 'ACK', 'P'] },
+    { name: 'driver', wave: 'x=........==.......==........==x',
+      data: ['master', 'slave', 'master', 'slave', 'master', 'slave', 'master'] },
+  ],
+  head: { text: 'AS5600 register read: write pointer, repeated start, read' },
+  config: { period_ns: 2500 },
+}

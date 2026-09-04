@@ -49,8 +49,13 @@ pub(crate) struct FileFilter {
 }
 
 static WAVEFORM_FILE_FILTER: FileFilter = FileFilter {
-    name: "Waveform/Transaction-files (*.vcd, *.fst, *.ghw, *.ftr)",
-    extensions: &["vcd", "fst", "ghw", TRANSACTIONS_FILE_EXTENSION],
+    name: "Waveform/Transaction/WaveDrom files (*.vcd, *.fst, *.ghw, *.ftr, *.json)",
+    extensions: &["vcd", "fst", "ghw", TRANSACTIONS_FILE_EXTENSION, "json", "json5", "wavedrom"],
+};
+
+pub(crate) static VCD_EXPORT_FILTER: FileFilter = FileFilter {
+    name: "VCD files (*.vcd)",
+    extensions: &["vcd"],
 };
 
 static COMMAND_FILE_FILTER: FileFilter = FileFilter {
