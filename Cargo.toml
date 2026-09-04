@@ -1,0 +1,129 @@
+[workspace]
+resolver = "2"
+
+members = [
+    "surfer",
+    "surfer-translation-types",
+    "surfer-wcp",
+    "surver",
+    "translator-docs",
+    "wasm_example_translator",
+]
+exclude = [".cache"]
+default-members = ["surfer", "surver", "libsurfer"]
+
+[workspace.package]
+version = "0.7.0"
+license = "EUPL-1.2"
+categories = ["development-tools::debugging", "science"]
+edition = "2024"
+rust-version = "1.95"
+repository = "https://github.com/loveluothebest/wavAnaly"
+
+[workspace.dependencies]
+
+ahash = "0.8"
+base64 = "0.22"
+bincode = "1.3.3"
+bytes = "1.11"
+bytesize = "2.3.1"
+camino = { version = "1.1.6", default-features = false, features = ["serde1"] }
+chrono = { version = "0.4.31", default-features = false, features = ["std", "wasmbind"] }
+clap = { version = "4.6", default-features = false, features = ['std', 'derive', 'help', 'usage', 'error-context', 'color'] }
+config = { version = "0.15.8", default-features = false, features = ["toml"] }
+derive_more = { version = "2.1", default-features = false, features = [
+    "add",
+    "add_assign",
+    "from_str",
+    "mul",
+    "display",
+    "not",
+    "debug",
+] }
+directories = "6.0"
+ecolor = { version = "0.36.1", features = ["serde"] }
+eframe = { version = "0.36.1", default-features = false, features = [
+    "default_fonts",
+    "glow",
+    "wayland",
+    "x11",
+] }
+egui = { version = "0.36.1", default-features = false, features = ["serde"] }
+egui-remixicon = { version = "0.34.0", default-features = false }
+egui_extras = { version = "0.36.1", default-features = false }
+egui_plot = "0.37"
+emath = "0.36.1"
+enum-iterator = "2.1"
+epaint = "0.36.1"
+extism = { version = "1.21", default-features = false }
+extism-convert = "1.21"
+extism-manifest = "1.21"
+eyre = "0.6.12"
+f128 = { git = "https://github.com/jkarns275/f128.git", rev = "7f971c34568dd6ae4e97a602bf15c23137b2cad5" }
+fastrand = "2.3.0"
+filetime = "0.2"
+fst-writer = "0.3"
+ftr_parser = "0.3.0"
+futures = "0.3.32"
+futures-core = "0.3.32"
+futures-util = "0.3.32"
+fuzzy-matcher = "0.3.7"
+half = "2.5"
+http-body-util = "0.1.2"
+hyper = { version = "1.4", features = ["http1", "server"] }
+hyper-util = { version = "0.1.6", features = ["tokio"] }
+image = { version = "0.25", default-features = false, features = ["png"] }
+image-compare = "0.5"
+instruction-decoder = { git = "https://github.com/ics-jku/instruction-decoder.git", rev = "4cd6db5be5d8bb1dc321d98ab93648078ab2b1b6", features = ["specs"] }
+itertools = "0.15.0"
+leb128 = "0.2.5"
+local-impl = "0.1.2"
+lz4_flex = "0.13"
+notify = "8.0"
+num = { version = "0.4", features = ["serde"] }
+numeric-sort = "0.1.4"
+png = "0.18"
+port_check = "0.3"
+project-root = "0.2.2"
+pure-rust-locales = "0.8.1"
+pyo3 = { version = "0.29", features = ["auto-initialize", "abi3"] }
+rayon = "1.10.0"
+regex = "1.12.3"
+reqwest = { version = "0.13.2", default-features = false, features = ["stream"] }
+rfd = { version = "0.17.1", default-features = false, features = [
+    "xdg-portal",
+] }
+ron = { version = "0.12", default-features = false, features = ["integer128"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std"] }
+serde = { version = "1.0.218", default-features = false, features = ["derive"] }
+serde_json = "1.0.139"
+simple-eyre = "0.3.1"
+softposit = "0.4.0"
+wavanaly = { path = "surfer", default-features = false }
+surver = { path = "surver", default-features = false }
+sys-locale = "0.3.2"
+tempfile = "3.20.0"
+test-log = "0.2.15"
+thiserror = "2"
+tokio = { version = "1.43", default-features = false, features = ["io-util", "rt", "time", "macros"] }
+tokio-stream = "0.1.17"
+toml = { version = "1.1", default-features = false, features = ["parse"] }
+tracing = "0.1.43"
+tracing-subscriber = { version = "0.3.22", default-features = false, features = ["env-filter", "fmt", "registry"] }
+vergen-gitcl = "9.1"
+wasm-bindgen = "0.2.126"
+wasm-bindgen-futures = "0.4.76"
+wasm-tracing = "2.1"
+web-sys = { version = "= 0.3.103", default-features = false, features = ["Location", "Navigator", "UrlSearchParams", "Window"] }
+web-time = { version = "1.1.0", default-features = false }
+wellen = { version = "0.25.6", default-features = false, features = ["serde1"] }
+whoami = { version = "2", default-features = false, features = ["std"] }
+
+[profile.release]
+opt-level = 3 # fast and small wasm
+lto = true
+
+# Optimize all dependencies even in debug builds:
+[profile.dev.package."*"]
+opt-level = 3
+debug = true
