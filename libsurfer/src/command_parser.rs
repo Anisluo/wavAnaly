@@ -757,10 +757,10 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                 ),
                 // decode_i2c <scl> <sda> [name]
                 "decode_i2c" => {
-                    let variables = variables.clone();
+                    // 不给候选: 候选会在回车时替换最后一个词, 多参数命令要按原样执行
                     Some(Command::NonTerminal(
                         ParamGreed::Rest,
-                        variables,
+                        vec![],
                         Box::new(move |params, _| {
                             let words: Vec<&str> = params.split_whitespace().collect();
                             if words.len() < 2 {
@@ -781,7 +781,6 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                 // decode_uart <line> [baud] [8N1] [inv] [name=xxx]
                 // decode_spi <sclk> <mosi> [miso|-] [cs|-] [mode0] [bits8] [lsb] [cs_high] [name=xxx]
                 "decode_uart" | "decode_spi" => {
-                    let variables = variables.clone();
                     let (protocol, n_signals): (&'static str, usize) = if query == "decode_uart" {
                         ("uart", 1)
                     } else {
@@ -789,7 +788,7 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                     };
                     Some(Command::NonTerminal(
                         ParamGreed::Rest,
-                        variables,
+                        vec![],
                         Box::new(move |params, _| {
                             let words: Vec<&str> = params.split_whitespace().collect();
                             // 前面若干个词是信号名 (最多 n_signals 个), 直到遇到看起来像参数的词

@@ -2875,7 +2875,8 @@ impl App for StateWrapper {
 
 impl SystemState {
     /// Handle [`Message::DecodeProtocol`]: make sure all inputs are loaded,
-    /// run the decoder and add the result to the wave view.
+    /// run the decoder and add the result to the wave view. Errors are shown
+    /// to the user through the log window.
     fn decode_protocol(
         &mut self,
         protocol: String,
@@ -2883,16 +2884,46 @@ impl SystemState {
         params: Vec<String>,
         name: Option<String>,
     ) {
+        if let Err(e) = self.decode_protocol_inner(protocol, inputs, params, name) {
+            self.update(Message::Error(e));
+        }
+    }
+
+    fn decode_protocol_inner(
+        &mut self,
+        protocol: String,
+        inputs: Vec<VariableRef>,
+        params: Vec<String>,
+        name: Option<String>,
+    ) -> Result<()> {
+        use eyre::{bail, eyre};
+
         let Some(waves) = self.user.waves.as_mut() else {
-            error!("Cannot decode {protocol}: no waveform loaded");
-            return;
+            bail!("{protocol} 解码失败: 还没有打开波形文件");
         };
         let Some(container) = waves.inner.as_waves_mut() else {
-            error!("Cannot decode {protocol}: not a waveform");
-            return;
+            bail!("{protocol} 解码失败: 当前文件不是波形");
         };
 
         let is_placeholder = |v: &VariableRef| v.name == "-";
+        // 先确认每个信号都存在, 否则给出明确的提示 (否则会一直等加载)
+        for v in inputs.iter().filter(|v| !is_placeholder(v)) {
+            if container.variable_meta(v).is_err() {
+                let full = v.full_path_string_no_index();
+                let hint = container
+                    .variable_names()
+                    .into_iter()
+                    .filter(|n| n.to_lowercase().ends_with(&v.name.to_lowercase()))
+                    .take(5)
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                if hint.is_empty() {
+                    bail!("{protocol} 解码失败: 找不到信号 '{full}' (要写完整路径, 如 i2c.SCL)");
+                }
+                bail!("{protocol} 解码失败: 找不到信号 '{full}', 你是不是想用: {hint}");
+            }
+        }
+
         let all_loaded = inputs.iter().filter(|v| !is_placeholder(v)).all(|v| {
             container
                 .signal_id(v)
@@ -2900,22 +2931,20 @@ impl SystemState {
                 .unwrap_or(false)
         });
         if !all_loaded {
-            match container.load_variables(inputs.iter().filter(|v| !is_placeholder(v))) {
-                Ok(cmd) => {
-                    // retried from the SignalsLoaded handler
-                    self.pending_decodes.push(Message::DecodeProtocol {
-                        protocol,
-                        inputs,
-                        params,
-                        name,
-                    });
-                    if let Some(cmd) = cmd {
-                        self.load_variables(cmd);
-                    }
-                }
-                Err(e) => error!("Cannot decode {protocol}: {e:#}"),
+            let cmd = container
+                .load_variables(inputs.iter().filter(|v| !is_placeholder(v)))
+                .map_err(|e| eyre!("{protocol} 解码失败: {e:#}"))?;
+            // retried from the SignalsLoaded handler
+            self.pending_decodes.push(Message::DecodeProtocol {
+                protocol,
+                inputs,
+                params,
+                name,
+            });
+            if let Some(cmd) = cmd {
+                self.load_variables(cmd);
             }
-            return;
+            return Ok(());
         }
 
         let units_per_second = container.metadata().timescale.units_per_second();
@@ -2927,36 +2956,27 @@ impl SystemState {
             }
             let acc = container
                 .signal_id(v)
-                .and_then(|id| container.signal_accessor(id));
-            match acc {
-                Ok(acc) => traces.push(decoders::to_bit_trace(acc.iter_changes())),
-                Err(e) => {
-                    error!("Cannot decode {protocol}: {} unavailable: {e:#}", v.name);
-                    return;
-                }
-            }
+                .and_then(|id| container.signal_accessor(id))
+                .map_err(|e| eyre!("{protocol} 解码失败: 信号 {} 不可用: {e:#}", v.name))?;
+            traces.push(decoders::to_bit_trace(acc.iter_changes()));
         }
 
-        let signal = match decoders::run(&protocol, &traces, &params, units_per_second) {
-            Ok(s) => s,
-            Err(e) => {
-                error!("{e:#}");
-                return;
-            }
-        };
+        let signal = decoders::run(&protocol, &traces, &params, units_per_second)
+            .map_err(|e| eyre!("{protocol} 解码失败: {e:#}"))?;
         let name = name.unwrap_or_else(|| {
             format!(
                 "{protocol}({})",
-                inputs.iter().filter(|v| !is_placeholder(v)).map(|v| v.name.as_str()).join(",")
+                inputs
+                    .iter()
+                    .filter(|v| !is_placeholder(v))
+                    .map(|v| v.name.as_str())
+                    .join(",")
             )
         });
         let n = signal.segments.len();
-        match container.add_virtual_signal(name.clone(), signal) {
-            Ok(vref) => {
-                info!("Decoded {protocol} into '{name}': {n} segments");
-                self.update(Message::AddVariables(vec![vref]));
-            }
-            Err(e) => error!("{e:#}"),
-        }
+        let vref = container.add_virtual_signal(name.clone(), signal)?;
+        info!("Decoded {protocol} into '{name}': {n} segments");
+        self.update(Message::AddVariables(vec![vref]));
+        Ok(())
     }
 }
