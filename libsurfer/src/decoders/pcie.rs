@@ -1,7 +1,7 @@
 //! PCIe 物理层 / 数据链路层 / 事务层解码 (单 lane, 8b/10b, Gen1/Gen2)。
 //!
 //! 输入: 一根 lane 的单端或差分正端 (TX_P) 比特流。参数: `gen1` (2.5 GT/s, 默认) / `gen2` (5 GT/s)
-//! / `ui=<ps>` 自定义位宽。
+//! / `ui=<ps>` 自定义位宽 / `noscramble` 不解扰 (默认按 Gen1/Gen2 规则解扰)。
 //! 输出两条信号:
 //! * `<名字>_sym` — 每个 10 位符号: `K28.5 COM`, `D10.2 0x4A`, 未能解码的写 `ERR`
 //! * `<名字>_pkt` — 帧级解析: `STP` / `SEQ 1` / `MWr32 len=1 tag=3 addr=0xF0001000` / `DATA DEADBEEF`
@@ -163,6 +163,56 @@ fn dllp_crc16(data: &[u8]) -> u16 {
 pub struct PcieConfig {
     /// 一个 UI 占多少个波形时间单位
     pub ui: f64,
+    /// 是否解扰 (Gen1/Gen2 真实链路总是加扰的)
+    pub descramble: bool,
+}
+
+/// Gen1/Gen2 扰码 LFSR: X^16+X^5+X^4+X^3+1, Galois 左移, 反馈掩码 0x39,
+/// 输出取 D15 (移位前), 字节 LSB 先。复位后对 D0.0 输出 FF 17 C0 14 B2 E7 02 82 ...
+struct Scrambler {
+    lfsr: u16,
+    in_ts: u8,
+}
+
+impl Scrambler {
+    fn new() -> Self {
+        Self { lfsr: 0xFFFF, in_ts: 0 }
+    }
+
+    fn advance_byte(&mut self) -> u8 {
+        let mut out = 0u8;
+        for i in 0..8 {
+            let msb = (self.lfsr >> 15) & 1;
+            out |= (msb as u8) << i;
+            self.lfsr <<= 1;
+            if msb == 1 {
+                self.lfsr ^= 0x39;
+            }
+        }
+        out
+    }
+
+    /// 处理一个符号, 返回解扰后的字节
+    fn process(&mut self, byte: u8, k: bool, next_is_d: bool) -> u8 {
+        if k {
+            if byte == K_COM {
+                self.lfsr = 0xFFFF;
+                self.in_ts = if next_is_d { 15 } else { 0 };
+                return byte;
+            }
+            if byte == K_SKP {
+                return byte;
+            }
+            self.advance_byte();
+            return byte;
+        }
+        let mask = self.advance_byte();
+        if self.in_ts > 0 {
+            self.in_ts -= 1;
+            return byte;
+        }
+        byte ^ mask
+    }
 }
 
 fn level_at(trace: &BitTrace, t: f64) -> bool {
@@ -179,6 +229,11 @@ fn recover_bits(trace: &BitTrace, ui: f64) -> Vec<(f64, bool)> {
     // 第一个真正的跳变作为相位基准
     let first_edge = trace.windows(2).find(|w| w[0].1 != w[1].1).map(|w| w[1].0 as f64);
     let Some(mut cur) = first_edge else { return bits };
+    // 把相位外推回波形起点, 这样第一个边沿之前的符号也能采到 (扰码 LFSR 从起点开始计数)
+    let t0 = trace.first().map(|e| e.0 as f64).unwrap_or(0.0);
+    while cur - ui >= t0 {
+        cur -= ui;
+    }
     let end = trace.last().map(|e| e.0 as f64).unwrap_or(cur) + ui * 12.0;
     let mut ei = trace.partition_point(|&(t, _)| (t as f64) < cur);
     while cur < end {
@@ -337,25 +392,40 @@ pub fn decode(lane: &BitTrace, cfg: &PcieConfig) -> (Vec<Segment>, Vec<Segment>)
         return (sym_out, pkt_out);
     };
 
-    // 符号序列: (时间, 字节, 是K, 有效)
-    let mut symbols: Vec<(u64, u8, bool, bool)> = vec![];
+    // 先查表得到线上符号 (时间, 字节, 是K, 有效)
+    let mut raw: Vec<(u64, u8, bool, bool)> = vec![];
     let mut i = offset;
     while i + 10 <= bits.len() {
         let code: String = bits[i..i + 10].iter().map(|b| if b.1 { '1' } else { '0' }).collect();
         let t = bits[i].0.round() as u64;
         match table.get(&code) {
-            Some(&(b, k)) => {
-                let name = format!("{}{}.{}", if k { 'K' } else { 'D' }, b & 0x1F, b >> 5);
-                let text = if k { format!("{name} {}", k_name(b)) } else { format!("{name} 0x{b:02X}") };
-                sym_out.push(Segment { time: t, text });
-                symbols.push((t, b, k, true));
-            }
-            None => {
-                sym_out.push(Segment { time: t, text: "ERR".into() });
-                symbols.push((t, 0, false, false));
-            }
+            Some(&(b, k)) => raw.push((t, b, k, true)),
+            None => raw.push((t, 0, false, false)),
         }
         i += 10;
+    }
+    // 解扰, 生成符号信号
+    let mut scr = Scrambler::new();
+    let mut symbols: Vec<(u64, u8, bool, bool)> = Vec::with_capacity(raw.len());
+    for (idx, &(t, b, k, ok)) in raw.iter().enumerate() {
+        if !ok {
+            sym_out.push(Segment { time: t, text: "ERR".into() });
+            symbols.push((t, 0, false, false));
+            scr = Scrambler::new();
+            continue;
+        }
+        let name = format!("{}{}.{}", if k { 'K' } else { 'D' }, b & 0x1F, b >> 5);
+        let next_is_d = raw.get(idx + 1).is_some_and(|n| n.3 && !n.2);
+        let data = if cfg.descramble { scr.process(b, k, next_is_d) } else { b };
+        let text = if k {
+            format!("{name} {}", k_name(b))
+        } else if data != b {
+            format!("{name} 0x{b:02X}>0x{data:02X}")
+        } else {
+            format!("{name} 0x{b:02X}")
+        };
+        sym_out.push(Segment { time: t, text });
+        symbols.push((t, data, k, true));
     }
     if let Some(last) = bits.last() {
         sym_out.push(Segment { time: (last.0 + cfg.ui).round() as u64, text: String::new() });
@@ -479,16 +549,18 @@ fn finish_dllp(buf: &[(u64, u8)], out: &mut Vec<Segment>) {
 pub fn config_from_params(params: &[String], units_per_second: f64) -> Result<PcieConfig, String> {
     let mut rate = 2.5e9;
     let mut ui_ps: Option<f64> = None;
+    let mut descramble = true;
     for p in params {
         let lp = p.to_ascii_lowercase();
         match lp.as_str() {
             "gen1" => rate = 2.5e9,
             "gen2" => rate = 5.0e9,
+            "noscramble" | "raw" => descramble = false,
             _ => {
                 if let Some(v) = lp.strip_prefix("ui=").and_then(|s| s.trim_end_matches("ps").parse::<f64>().ok()) {
                     ui_ps = Some(v);
                 } else {
-                    return Err(format!("无法识别的 PCIe 参数 '{p}' (示例: gen1, gen2, ui=400ps)"));
+                    return Err(format!("无法识别的 PCIe 参数 '{p}' (示例: gen1, gen2, ui=400ps, noscramble)"));
                 }
             }
         }
@@ -498,7 +570,7 @@ pub fn config_from_params(params: &[String], units_per_second: f64) -> Result<Pc
     if ui < 2.0 {
         return Err(format!("波形时基太粗: 一个 UI 只有 {ui:.2} 个时间单位, 至少需要 2"));
     }
-    Ok(PcieConfig { ui })
+    Ok(PcieConfig { ui, descramble })
 }
 
 #[cfg(test)]
@@ -512,6 +584,13 @@ mod tests {
         assert_eq!(t.get("1100000101"), Some(&(0xBC, true)));
         let (c, _) = encode(0x00, false, -1).unwrap();
         assert_eq!(t.get(&c), Some(&(0x00, false)));
+    }
+
+    #[test]
+    fn scrambler_matches_spec_sequence() {
+        let mut s = Scrambler::new();
+        let seq: Vec<u8> = (0..8).map(|_| s.process(0x00, false, false)).collect();
+        assert_eq!(seq, vec![0xFF, 0x17, 0xC0, 0x14, 0xB2, 0xE7, 0x02, 0x82]);
     }
 
     #[test]

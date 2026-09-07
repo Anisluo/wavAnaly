@@ -5,10 +5,12 @@
 链路内容 (RC -> EP 方向):
   逻辑空闲 (D0.0) -> SKP 有序集 (COM SKP SKP SKP) -> MWr32 TLP (1 DW 数据, seq 0)
   -> 空闲 -> MRd32 TLP (seq 1) -> Ack DLLP (AckNak_Seq 1) -> SKP 有序集 -> 空闲
+扰码: 默认开启 (Gen1/Gen2 LFSR X^16+X^5+X^4+X^3+1, COM 复位, SKP 不推进), 加 --noscramble 关闭。
 信号:
   pcie.TX_P / pcie.TX_N   差分对 (TX_N = 反相)
   pcie.REFCLK_100M        参考时钟 (与数据无相位关系, 只作对照)
   pcie.ref                真值标注: 当前符号 / 帧, 用来核对解码器
+  pcie.symbol             线上的 8b/10b 符号 (加扰后), '>0xNN' 是扰码前的原始字节
 
 CRC 按 PCIe Base Spec 的公式实现 (LCRC: CRC-32 04C11DB7, DLLP: CRC-16 100B, 均取反并按位反转),
 解码器用同样的算法核对, 未用真实设备抓包比对过。
@@ -172,8 +174,47 @@ idle(4)
 skp_os()
 idle(12)
 
+# ---------------------------------------------------------------- 扰码 (Gen1/Gen2)
+class Scrambler:
+    """X^16+X^5+X^4+X^3+1, Galois 左移, 反馈掩码 0x39, 输出取 D15 (移位前), 字节 LSB 先。
+    COM 复位为 0xFFFF; SKP 不推进; K 码与有序集内的 D 码不加扰但推进 LFSR。
+    复位后对 D0.0 的扰码输出: FF 17 C0 14 B2 E7 02 82 ... (与规范一致)"""
+    def __init__(self):
+        self.lfsr = 0xFFFF
+        self.in_ts = 0          # 剩余的训练序列符号数 (不加扰)
+
+    def advance_byte(self):
+        out = 0
+        for i in range(8):
+            msb = (self.lfsr >> 15) & 1
+            out |= msb << i
+            self.lfsr = (self.lfsr << 1) & 0xFFFF
+            if msb:
+                self.lfsr ^= 0x39
+        return out
+
+    def process(self, byte, k, next_is_d):
+        if k:
+            if byte == K_COM:
+                self.lfsr = 0xFFFF
+                self.in_ts = 15 if next_is_d else 0   # COM 后紧跟 D 码 = TS1/TS2 (16 符号)
+                return byte
+            if byte == K_SKP:
+                return byte                            # SKP 不推进
+            self.advance_byte()
+            return byte
+        mask = self.advance_byte()
+        if self.in_ts:
+            self.in_ts -= 1
+            return byte
+        return byte ^ mask
+
+
+SCRAMBLE = '--noscramble' not in __import__('sys').argv
+
 # ---------------------------------------------------------------- 输出 VCD
 enc = Encoder8b10b()
+scr = Scrambler()
 out = os.path.join(os.path.dirname(__file__), '..', 'examples', 'pcie_gen1.vcd')
 with open(out, 'w', encoding='utf-8') as f:
     f.write('$comment wavAnaly PCIe Gen1 x1 lane test waveform (8b/10b, 2.5 GT/s) $end\n')
@@ -184,10 +225,15 @@ with open(out, 'w', encoding='utf-8') as f:
     t = 0
     last_bit = None
     last_ref = None
-    for byte, k, label in symbols:
-        code = enc.encode(byte, k)
-        name = (f'K{byte & 0x1F}.{byte >> 5}' if k else f'D{byte & 0x1F}.{byte >> 5}')
-        changes.append((t, f's{name}={code} %'))
+    for idx, (byte, k, label) in enumerate(symbols):
+        wire_byte = byte
+        if SCRAMBLE:
+            next_is_d = idx + 1 < len(symbols) and not symbols[idx + 1][1]
+            wire_byte = scr.process(byte, k, next_is_d)
+        code = enc.encode(wire_byte, k)
+        name = (f'K{wire_byte & 0x1F}.{wire_byte >> 5}' if k else f'D{wire_byte & 0x1F}.{wire_byte >> 5}')
+        tag = f'{name}={code}' if (k or wire_byte == byte) else f'{name}={code}>0x{byte:02X}'
+        changes.append((t, f's{tag} %'))
         if label != last_ref:
             changes.append((t, f's{label} $'))
             last_ref = label

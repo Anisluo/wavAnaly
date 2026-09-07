@@ -2,7 +2,8 @@
 
 ## 2026-09-04 (4)
 
-- 新增 `decode_pcie`：单 lane 8b/10b 解码 + TLP/DLLP 解析（LCRC / CRC16 校验），一次输出符号与帧两条信号。
+- 新增 `decode_pcie`：单 lane 8b/10b 解码 + Gen1/Gen2 解扰 + TLP/DLLP 解析（LCRC / CRC16 校验），一次输出符号与帧两条信号。
+- `gen_pcie_vcd.py` 默认加扰（`--noscramble` 关闭），扰码序列已与规范给出的 FF 17 C0 14 B2 E7 02 82 核对。
 - `decoders::run` 改为返回多条信号（名字后缀），`decode_*` 命令的信号名/参数解析统一。
 - 新增 `tools/gen_pcie_vcd.py` 与 `examples/pcie_gen1.vcd`；`tools/uart_bits.py` 逐位 UART 分析脚本。
 

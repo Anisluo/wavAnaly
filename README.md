@@ -15,8 +15,8 @@ VCD / FST / GHW 波形放在同一根时间轴上，并直接读出总线上传�
     标出帧错误 `FRAME?` 与校验错误 `PARITY?`。默认 115200 8N1，`inv` 表示反相电平。
   - `decode_spi <sclk> <mosi> [miso|-] [cs|-] [mode0..3] [bitsN] [lsb] [cs_high] [name=名字]` — SPI：
     按 CPOL/CPHA 选采样沿，有片选时只在片选有效期间解码，输出 `M:0xA5 S:0x3C`。缺少的线用 `-` 占位。
-  - `decode_pcie <lane> [gen1|gen2|ui=400ps] [name=名字]` — PCIe 单 lane：边沿时钟恢复、K28.5 comma 对齐、
-    8b/10b 解码，输出 `_sym`（每个符号 `K28.5 COM` / `D10.2 0x4A`）和 `_pkt`（`STP` / `SEQ` / `MWr32 len=1DW tag=3 addr=…` /
+  - `decode_pcie <lane> [gen1|gen2|ui=400ps] [noscramble] [name=名字]` — PCIe 单 lane：边沿时钟恢复、K28.5 comma 对齐、
+    8b/10b 解码、Gen1/Gen2 解扰（LFSR X^16+X^5+X^4+X^3+1，COM 复位，SKP 不推进），输出 `_sym`（每个符号 `K28.5 COM` / `D10.2 0x4A`）和 `_pkt`（`STP` / `SEQ` / `MWr32 len=1DW tag=3 addr=…` /
     `DATA` / `LCRC ok` / `END` / `DLLP Ack seq=1` / `COM` `SKP`）两条信号。测试波形 `examples/pcie_gen1.vcd`
     由 `tools/gen_pcie_vcd.py` 生成（Gen1 x1，SKP 有序集 + MWr32 + MRd32 + Ack DLLP）。
   - 规划中：CAN、AHB-Lite / APB、单总线。
