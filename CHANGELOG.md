@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-04 (3)
+
+- 新增 `decode_uart`（波特率 / 数据位 / 校验 / 停止位 / 反相）与 `decode_spi`（模式 0-3、位宽、LSB 先、片选极性）解码器。
+- `Message::DecodeProtocol` 增加 `params`；解码器可拿到波形时基（`TimeScale::units_per_second`）。
+- 新增 `tools/gen_protocol_vcd.py` 与 `examples/protocols.vcd`（I²C / SPI / UART 测试波形）。
+
 ## wavAnaly
 
 ### [wavAnaly 0.1.0] - 2026-09-04 (based on Surfer 0.7.0)

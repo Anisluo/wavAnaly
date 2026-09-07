@@ -6,6 +6,8 @@
 //! and marker tooling works on it without changes.
 
 pub mod i2c;
+pub mod spi;
+pub mod uart;
 
 use eyre::{Result, bail};
 use num::{BigUint, ToPrimitive};
@@ -87,11 +89,20 @@ pub fn to_bit_trace(changes: impl Iterator<Item = (u64, VariableValue)>) -> BitT
 }
 
 /// Names of all available protocol decoders, for command completion.
-pub const PROTOCOLS: &[&str] = &["i2c"];
+pub const PROTOCOLS: &[&str] = &["i2c", "uart", "spi"];
 
 /// Run the decoder called `protocol` on the given input traces. The order of
 /// `inputs` is protocol specific (see the individual decoder modules).
-pub fn run(protocol: &str, inputs: &[BitTrace]) -> Result<VirtualSignal> {
+///
+/// `params` are the free-form decoder options typed after the signal names
+/// (baud rate, SPI mode, ...). `units_per_second` converts the waveform's
+/// time unit to seconds (1e9 for a 1 ns timescale).
+pub fn run(
+    protocol: &str,
+    inputs: &[BitTrace],
+    params: &[String],
+    units_per_second: f64,
+) -> Result<VirtualSignal> {
     match protocol {
         "i2c" => {
             if inputs.len() != 2 {
@@ -100,6 +111,31 @@ pub fn run(protocol: &str, inputs: &[BitTrace]) -> Result<VirtualSignal> {
             Ok(VirtualSignal::new(
                 "decoded i2c",
                 i2c::decode(&inputs[0], &inputs[1]),
+            ))
+        }
+        "uart" => {
+            if inputs.len() != 1 {
+                bail!("uart decoder needs exactly one input line (RX or TX)");
+            }
+            let cfg = uart::config_from_params(params, units_per_second).map_err(|e| eyre::eyre!(e))?;
+            Ok(VirtualSignal::new(
+                format!("decoded uart {} {}{}{}", cfg.baud, cfg.data_bits,
+                    match cfg.parity { uart::Parity::None => "N", uart::Parity::Even => "E", uart::Parity::Odd => "O" },
+                    cfg.stop_bits),
+                uart::decode(&inputs[0], &cfg),
+            ))
+        }
+        "spi" => {
+            if inputs.len() < 2 || inputs.len() > 4 {
+                bail!("spi decoder needs SCLK MOSI [MISO] [CS] (use '-' for a missing line)");
+            }
+            let cfg = spi::config_from_params(params).map_err(|e| eyre::eyre!(e))?;
+            let empty = BitTrace::new();
+            let miso = inputs.get(2).unwrap_or(&empty);
+            let cs = inputs.get(3).unwrap_or(&empty);
+            Ok(VirtualSignal::new(
+                format!("decoded spi mode{}", u8::from(cfg.cpol) * 2 + u8::from(cfg.cpha)),
+                spi::decode(&inputs[0], &inputs[1], miso, cs, &cfg),
             ))
         }
         other => bail!("Unknown protocol decoder '{other}'"),

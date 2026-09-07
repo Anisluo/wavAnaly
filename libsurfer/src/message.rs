@@ -85,6 +85,8 @@ pub enum Message {
     DecodeProtocol {
         protocol: String,
         inputs: Vec<VariableRef>,
+        /// Decoder options (baud rate, SPI mode, ...), see `decoders`
+        params: Vec<String>,
         name: Option<String>,
     },
     /// Add scope to wave view.

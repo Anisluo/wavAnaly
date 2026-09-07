@@ -11,7 +11,19 @@ VCD / FST / GHW 波形放在同一根时间轴上，并直接读出总线上传�
 - Surfer 的全部能力：VCD / FST / GHW 加载、缩放、光标、标记、测量、分组、状态保存、WCP 远程控制、WASM 插件翻译器。
 - **协议解码**：选定若干物理信号，生成一条解码后的字符串信号，与原始波形对齐显示。
   - `decode_i2c <scl> <sda> [名字]` — I²C：S / Sr / P、7 位地址 + 读写位、数据字节、ACK / NACK。
-  - 规划中：UART、SPI、CAN、AHB-Lite / APB、单总线。
+  - `decode_uart <线> [波特率] [8N1] [inv] [name=名字]` — UART：按起始位定位，1.5 位处采样，输出 `0x4D 'M'`，
+    标出帧错误 `FRAME?` 与校验错误 `PARITY?`。默认 115200 8N1，`inv` 表示反相电平。
+  - `decode_spi <sclk> <mosi> [miso|-] [cs|-] [mode0..3] [bitsN] [lsb] [cs_high] [name=名字]` — SPI：
+    按 CPOL/CPHA 选采样沿，有片选时只在片选有效期间解码，输出 `M:0xA5 S:0x3C`。缺少的线用 `-` 占位。
+  - 规划中：CAN、AHB-Lite / APB、单总线。
+  - 测试波形：`examples/protocols.vcd`（由 `tools/gen_protocol_vcd.py` 生成，含三种总线），加载后执行：
+
+    ```
+    decode_i2c i2c.SCL i2c.SDA
+    decode_spi spi.SCLK spi.MOSI spi.MISO spi.CS_n bits16
+    decode_uart uart.RX 115200
+    decode_uart uart.RX_9600_8E1 9600 8E1
+    ```
 - **中文界面**：默认中文，`language = "en"` 或环境变量 `WAVANALY_LANG=en` 切回英文。
 - **WaveDrom 脚本导入**：直接打开 `.json` / `.json5` / `.wavedrom` 文件（支持不带引号的键、单引号、注释、尾逗号），
   按 WaveDrom 语法生成波形显示；菜单 文件 → 导出 WaveDrom 为 VCD，或命令 `wavedrom_export_vcd <路径>`。

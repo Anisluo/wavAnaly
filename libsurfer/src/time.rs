@@ -30,6 +30,13 @@ pub struct TimeScale {
 }
 
 impl TimeScale {
+    /// How many waveform time units make up one second (1e9 for `1ns`).
+    #[must_use]
+    pub fn units_per_second(&self) -> f64 {
+        let mult = f64::from(self.multiplier.unwrap_or(1));
+        10f64.powi(-i32::from(self.unit.exponent())) / mult
+    }
+
     pub(crate) fn multiplier_digits(&self) -> u8 {
         match self.multiplier {
             Some(1) => 0,

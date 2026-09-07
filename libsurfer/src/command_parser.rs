@@ -284,6 +284,8 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
             "switch_file",
             "variable_add",
             "decode_i2c",
+            "decode_uart",
+            "decode_spi",
             #[cfg(not(target_arch = "wasm32"))]
             "wavedrom_export_vcd",
             "generator_add",
@@ -770,7 +772,56 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                                     VariableRef::from_hierarchy_string(words[0]),
                                     VariableRef::from_hierarchy_string(words[1]),
                                 ],
+                                params: vec![],
                                 name: words.get(2).map(|s| (*s).to_string()),
+                            }))
+                        }),
+                    ))
+                }
+                // decode_uart <line> [baud] [8N1] [inv] [name=xxx]
+                // decode_spi <sclk> <mosi> [miso|-] [cs|-] [mode0] [bits8] [lsb] [cs_high] [name=xxx]
+                "decode_uart" | "decode_spi" => {
+                    let variables = variables.clone();
+                    let (protocol, n_signals): (&'static str, usize) = if query == "decode_uart" {
+                        ("uart", 1)
+                    } else {
+                        ("spi", 4)
+                    };
+                    Some(Command::NonTerminal(
+                        ParamGreed::Rest,
+                        variables,
+                        Box::new(move |params, _| {
+                            let words: Vec<&str> = params.split_whitespace().collect();
+                            // 前面若干个词是信号名 (最多 n_signals 个), 直到遇到看起来像参数的词
+                            let looks_like_param = |w: &str| {
+                                w.parse::<f64>().is_ok()
+                                    || w.starts_with("name=")
+                                    || w.starts_with("mode")
+                                    || w.starts_with("bits")
+                                    || matches!(w.to_ascii_lowercase().as_str(), "lsb" | "msb" | "inv" | "inverted" | "cs_high")
+                                    || (w.len() == 3 && w.as_bytes()[0].is_ascii_digit() && w.as_bytes()[2].is_ascii_digit())
+                            };
+                            let mut inputs = vec![];
+                            let mut rest = vec![];
+                            let mut name_opt = None;
+                            for w in words {
+                                if inputs.len() < n_signals && !looks_like_param(w) {
+                                    inputs.push(VariableRef::from_hierarchy_string(w));
+                                } else if let Some(n) = w.strip_prefix("name=") {
+                                    name_opt = Some(n.to_string());
+                                } else {
+                                    rest.push(w.to_string());
+                                }
+                            }
+                            let min = if protocol == "uart" { 1 } else { 2 };
+                            if inputs.len() < min {
+                                return None;
+                            }
+                            Some(Command::Terminal(Message::DecodeProtocol {
+                                protocol: protocol.to_string(),
+                                inputs,
+                                params: rest,
+                                name: name_opt,
                             }))
                         }),
                     ))

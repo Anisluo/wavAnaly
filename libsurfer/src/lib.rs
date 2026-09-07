@@ -403,9 +403,10 @@ impl SystemState {
             Message::DecodeProtocol {
                 protocol,
                 inputs,
+                params,
                 name,
             } => {
-                self.decode_protocol(protocol, inputs, name);
+                self.decode_protocol(protocol, inputs, params, name);
             }
             Message::DownloadDefaultConfig => {
                 #[cfg(not(target_arch = "wasm32"))]
@@ -2879,6 +2880,7 @@ impl SystemState {
         &mut self,
         protocol: String,
         inputs: Vec<VariableRef>,
+        params: Vec<String>,
         name: Option<String>,
     ) {
         let Some(waves) = self.user.waves.as_mut() else {
@@ -2890,19 +2892,21 @@ impl SystemState {
             return;
         };
 
-        let all_loaded = inputs.iter().all(|v| {
+        let is_placeholder = |v: &VariableRef| v.name == "-";
+        let all_loaded = inputs.iter().filter(|v| !is_placeholder(v)).all(|v| {
             container
                 .signal_id(v)
                 .map(|id| container.is_signal_loaded(&id))
                 .unwrap_or(false)
         });
         if !all_loaded {
-            match container.load_variables(inputs.iter()) {
+            match container.load_variables(inputs.iter().filter(|v| !is_placeholder(v))) {
                 Ok(cmd) => {
                     // retried from the SignalsLoaded handler
                     self.pending_decodes.push(Message::DecodeProtocol {
                         protocol,
                         inputs,
+                        params,
                         name,
                     });
                     if let Some(cmd) = cmd {
@@ -2914,8 +2918,13 @@ impl SystemState {
             return;
         }
 
+        let units_per_second = container.metadata().timescale.units_per_second();
         let mut traces = Vec::with_capacity(inputs.len());
         for v in &inputs {
+            if is_placeholder(v) {
+                traces.push(decoders::BitTrace::new());
+                continue;
+            }
             let acc = container
                 .signal_id(v)
                 .and_then(|id| container.signal_accessor(id));
@@ -2928,7 +2937,7 @@ impl SystemState {
             }
         }
 
-        let signal = match decoders::run(&protocol, &traces) {
+        let signal = match decoders::run(&protocol, &traces, &params, units_per_second) {
             Ok(s) => s,
             Err(e) => {
                 error!("{e:#}");
@@ -2938,7 +2947,7 @@ impl SystemState {
         let name = name.unwrap_or_else(|| {
             format!(
                 "{protocol}({})",
-                inputs.iter().map(|v| v.name.as_str()).join(",")
+                inputs.iter().filter(|v| !is_placeholder(v)).map(|v| v.name.as_str()).join(",")
             )
         });
         let n = signal.segments.len();
