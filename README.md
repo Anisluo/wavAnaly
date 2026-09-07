@@ -29,6 +29,17 @@ VCD / FST / GHW 波形放在同一根时间轴上，并直接读出总线上传�
   按 WaveDrom 语法生成波形显示；菜单 文件 → 导出 WaveDrom 为 VCD，或命令 `wavedrom_export_vcd <路径>`。
   扩展字段 `config.period_ns` 指定一个 WaveDrom 周期等于多少纳秒（默认 10）。示例见 `docs/timing/as5600_i2c.wavedrom.json`。
 
+## 逐位分析脚本
+
+`tools/uart_bits.py` 独立于软件运行，按波特率逐位采样 VCD 里的 UART 线，打印每一帧每一位的采样时刻与电平，
+并可输出带 `xxx_bit` / `xxx_byte` 标注的 VCD 在 wavAnaly 里对照：
+
+```bash
+python tools/uart_bits.py examples/protocols.vcd uart.RX uart.TX --baud 115200
+python tools/uart_bits.py examples/protocols.vcd uart.RX_9600_8E1 --baud 9600 --format 8E1 --brief
+python tools/uart_bits.py examples/protocols.vcd uart.RX --baud 115200 --annotate rx_bits.vcd
+```
+
 ## 构建
 
 需要 Rust 1.95+。Windows 上没有 MSVC 时可以用 GNU 工具链（`rustup default stable-x86_64-pc-windows-gnu`，需要 mingw64 在 PATH 中）。
