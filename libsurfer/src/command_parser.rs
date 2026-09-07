@@ -286,6 +286,7 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
             "decode_i2c",
             "decode_uart",
             "decode_spi",
+            "decode_pcie",
             #[cfg(not(target_arch = "wasm32"))]
             "wavedrom_export_vcd",
             "generator_add",
@@ -780,11 +781,11 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                 }
                 // decode_uart <line> [baud] [8N1] [inv] [name=xxx]
                 // decode_spi <sclk> <mosi> [miso|-] [cs|-] [mode0] [bits8] [lsb] [cs_high] [name=xxx]
-                "decode_uart" | "decode_spi" => {
-                    let (protocol, n_signals): (&'static str, usize) = if query == "decode_uart" {
-                        ("uart", 1)
-                    } else {
-                        ("spi", 4)
+                "decode_uart" | "decode_spi" | "decode_pcie" => {
+                    let (protocol, n_signals): (&'static str, usize) = match query {
+                        "decode_uart" => ("uart", 1),
+                        "decode_pcie" => ("pcie", 1),
+                        _ => ("spi", 4),
                     };
                     Some(Command::NonTerminal(
                         ParamGreed::Rest,
@@ -797,6 +798,8 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                                     || w.starts_with("name=")
                                     || w.starts_with("mode")
                                     || w.starts_with("bits")
+                                    || w.starts_with("gen")
+                                    || w.starts_with("ui=")
                                     || matches!(w.to_ascii_lowercase().as_str(), "lsb" | "msb" | "inv" | "inverted" | "cs_high")
                                     || (w.len() == 3 && w.as_bytes()[0].is_ascii_digit() && w.as_bytes()[2].is_ascii_digit())
                             };
@@ -812,7 +815,7 @@ pub(crate) fn get_parser(state: &SystemState) -> Command<Message> {
                                     rest.push(w.to_string());
                                 }
                             }
-                            let min = if protocol == "uart" { 1 } else { 2 };
+                            let min = if protocol == "spi" { 2 } else { 1 };
                             if inputs.len() < min {
                                 return None;
                             }

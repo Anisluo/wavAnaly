@@ -6,6 +6,7 @@
 //! and marker tooling works on it without changes.
 
 pub mod i2c;
+pub mod pcie;
 pub mod spi;
 pub mod uart;
 
@@ -89,7 +90,7 @@ pub fn to_bit_trace(changes: impl Iterator<Item = (u64, VariableValue)>) -> BitT
 }
 
 /// Names of all available protocol decoders, for command completion.
-pub const PROTOCOLS: &[&str] = &["i2c", "uart", "spi"];
+pub const PROTOCOLS: &[&str] = &["i2c", "uart", "spi", "pcie"];
 
 /// Run the decoder called `protocol` on the given input traces. The order of
 /// `inputs` is protocol specific (see the individual decoder modules).
@@ -102,28 +103,40 @@ pub fn run(
     inputs: &[BitTrace],
     params: &[String],
     units_per_second: f64,
-) -> Result<VirtualSignal> {
+) -> Result<Vec<(String, VirtualSignal)>> {
+    // 返回 (名字后缀, 信号); 大多数协议只有一条输出, 后缀为空
     match protocol {
         "i2c" => {
             if inputs.len() != 2 {
                 bail!("i2c decoder needs exactly two inputs: SCL SDA");
             }
-            Ok(VirtualSignal::new(
+            Ok(vec![(String::new(), VirtualSignal::new(
                 "decoded i2c",
                 i2c::decode(&inputs[0], &inputs[1]),
-            ))
+            ))])
+        }
+        "pcie" => {
+            if inputs.len() != 1 {
+                bail!("pcie decoder needs exactly one input: the lane bit stream (TX_P)");
+            }
+            let cfg = pcie::config_from_params(params, units_per_second).map_err(|e| eyre::eyre!(e))?;
+            let (sym, pkt) = pcie::decode(&inputs[0], &cfg);
+            Ok(vec![
+                ("_sym".to_string(), VirtualSignal::new("pcie 8b/10b symbols", sym)),
+                ("_pkt".to_string(), VirtualSignal::new("pcie packets", pkt)),
+            ])
         }
         "uart" => {
             if inputs.len() != 1 {
                 bail!("uart decoder needs exactly one input line (RX or TX)");
             }
             let cfg = uart::config_from_params(params, units_per_second).map_err(|e| eyre::eyre!(e))?;
-            Ok(VirtualSignal::new(
+            Ok(vec![(String::new(), VirtualSignal::new(
                 format!("decoded uart {} {}{}{}", cfg.baud, cfg.data_bits,
                     match cfg.parity { uart::Parity::None => "N", uart::Parity::Even => "E", uart::Parity::Odd => "O" },
                     cfg.stop_bits),
                 uart::decode(&inputs[0], &cfg),
-            ))
+            ))])
         }
         "spi" => {
             if inputs.len() < 2 || inputs.len() > 4 {
@@ -133,10 +146,10 @@ pub fn run(
             let empty = BitTrace::new();
             let miso = inputs.get(2).unwrap_or(&empty);
             let cs = inputs.get(3).unwrap_or(&empty);
-            Ok(VirtualSignal::new(
+            Ok(vec![(String::new(), VirtualSignal::new(
                 format!("decoded spi mode{}", u8::from(cfg.cpol) * 2 + u8::from(cfg.cpha)),
                 spi::decode(&inputs[0], &inputs[1], miso, cs, &cfg),
-            ))
+            ))])
         }
         other => bail!("Unknown protocol decoder '{other}'"),
     }

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-09-04 (4)
+
+- 新增 `decode_pcie`：单 lane 8b/10b 解码 + TLP/DLLP 解析（LCRC / CRC16 校验），一次输出符号与帧两条信号。
+- `decoders::run` 改为返回多条信号（名字后缀），`decode_*` 命令的信号名/参数解析统一。
+- 新增 `tools/gen_pcie_vcd.py` 与 `examples/pcie_gen1.vcd`；`tools/uart_bits.py` 逐位 UART 分析脚本。
+
 ## 2026-09-04 (3)
 
 - 新增 `decode_uart`（波特率 / 数据位 / 校验 / 停止位 / 反相）与 `decode_spi`（模式 0-3、位宽、LSB 先、片选极性）解码器。

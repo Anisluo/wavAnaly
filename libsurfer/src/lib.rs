@@ -2961,7 +2961,7 @@ impl SystemState {
             traces.push(decoders::to_bit_trace(acc.iter_changes()));
         }
 
-        let signal = decoders::run(&protocol, &traces, &params, units_per_second)
+        let signals = decoders::run(&protocol, &traces, &params, units_per_second)
             .map_err(|e| eyre!("{protocol} 解码失败: {e:#}"))?;
         let name = name.unwrap_or_else(|| {
             format!(
@@ -2973,10 +2973,14 @@ impl SystemState {
                     .join(",")
             )
         });
-        let n = signal.segments.len();
-        let vref = container.add_virtual_signal(name.clone(), signal)?;
-        info!("Decoded {protocol} into '{name}': {n} segments");
-        self.update(Message::AddVariables(vec![vref]));
+        let mut refs = vec![];
+        for (suffix, signal) in signals {
+            let full = format!("{name}{suffix}");
+            let n = signal.segments.len();
+            refs.push(container.add_virtual_signal(full.clone(), signal)?);
+            info!("Decoded {protocol} into '{full}': {n} segments");
+        }
+        self.update(Message::AddVariables(refs));
         Ok(())
     }
 }
